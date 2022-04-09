@@ -1,6 +1,5 @@
 # gitbitex-service-group
 
-
 <p align="center"><img width="40%" src="https://getbitex.oss-cn-beijing.aliyuncs.com/projects/image/logo.svg" /></p>
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/gitbitex/gitbitex-spot)](https://goreportcard.com/report/github.com/gitbitex/gitbitex-spot)
@@ -24,10 +23,57 @@ https://gitbitex.com:8080/trade/BTC-USDT
 ### Server
 * git clone https://github.com/gitbitex/gitbitex-spot.git
 * Create database and make sure **BINLOG[ROW format]** enabled
+```
+/etc/mysql/mysql.conf.d/mysqld.cnf
+[mysqld]
+server-id=1      
+log-bin = mysql-bin 
+```
+
 * Execute ddl.sql
+```
+/etc/mysql/mysql.conf.d/mysqld.cnf
+[mysqld]
+sql-mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+```
+
 * Modify conf.json
-* Run go build
-* Run ./gitbitex-spot
+```
+cp conf_example.json conf.json
+```
+
+* Build 
+    
+##### legacy:
+```
+make legacy_clean
+make legacy
+```
+
+##### recent:
+```
+make clean
+make all
+```
+
+* Run 
+##### legacy:
+```
+./gitbitex-spot
+```
+
+##### recent:
+```
+./billing_processor 
+./binlog_processor 
+./matching_engine 
+./ordering_processor 
+./trading_processor 
+./pushing_server 
+./rest_server
+```
+
+
 ### Web
 * git clone https://github.com/gitbitex/gitbitex-web.git
 * Run `npm install`
@@ -40,4 +86,3 @@ Please let me know if you have any questions. You can submit an issue or send me
 
 ## Contributing
 This project welcomes contributions and suggestions and we are excited to work with the power user community to build the best exchange in the world
-
