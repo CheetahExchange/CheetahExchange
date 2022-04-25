@@ -15,6 +15,7 @@
 package rest
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 )
@@ -34,7 +35,8 @@ func (server *HttpServer) Start() {
 	gin.DefaultWriter = ioutil.Discard
 
 	r := gin.Default()
-	r.Use(setCROSOptions)
+	//r.Use(setCROSOptions)
+	r.Use(cors.Default())
 
 	r.GET("/api/configs", GetConfigs)
 	r.POST("/api/users", SignUp)
