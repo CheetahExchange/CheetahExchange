@@ -66,6 +66,7 @@ func (c *Client) runReader() {
 	err := c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	if err != nil {
 		log.Error(err)
+		return
 	}
 	c.conn.SetPongHandler(func(string) error {
 		return c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -246,6 +247,7 @@ func (c *Client) onSub(currencyIds []string, productIds []string, channels []str
 	user, err := service.CheckToken(token)
 	if err != nil {
 		log.Error(err)
+		return
 	}
 
 	var userId int64
@@ -297,6 +299,7 @@ func (c *Client) onUnSub(currencyIds []string, productIds []string, channels []s
 	user, err := service.CheckToken(token)
 	if err != nil {
 		log.Error(err)
+		return
 	}
 
 	var userId int64

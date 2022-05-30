@@ -16,6 +16,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gitbitex/gitbitex-spot/conf"
 	"github.com/gitbitex/gitbitex-spot/utils"
 	"github.com/go-redis/redis"
@@ -29,6 +30,60 @@ import (
 type BinLogStream struct {
 	canal.DummyEventHandler
 	redisClient *redis.Client
+}
+
+func IntegerInterfaceToInt64(i interface{}) int64 {
+	switch i.(type) {
+	case int:
+		return int64(i.(int))
+	case uint:
+		return int64(i.(uint))
+	case int64:
+		return i.(int64)
+	case uint64:
+		return int64(i.(uint64))
+	case int32:
+		return int64(i.(int32))
+	case uint32:
+		return int64(i.(uint32))
+	case int16:
+		return int64(i.(int16))
+	case uint16:
+		return int64(i.(uint16))
+	case int8:
+		return int64(i.(int8))
+	case uint8:
+		return int64(i.(uint8))
+	default:
+		panic(fmt.Sprintf("IntegerInterfaceToInt64: %v", reflect.TypeOf(i)))
+	}
+}
+
+func IntegerInterfaceToUint64(i interface{}) uint64 {
+	switch i.(type) {
+	case int:
+		return uint64(i.(int))
+	case uint:
+		return uint64(i.(uint))
+	case int64:
+		return uint64(i.(int64))
+	case uint64:
+		return i.(uint64)
+	case int32:
+		return uint64(i.(int32))
+	case uint32:
+		return uint64(i.(uint32))
+	case int16:
+		return uint64(i.(int16))
+	case uint16:
+		return uint64(i.(uint16))
+	case int8:
+		return uint64(i.(int8))
+	case uint8:
+		return uint64(i.(uint8))
+	default:
+		panic(fmt.Sprintf("IntegerInterfaceToUint64: %v", reflect.TypeOf(i)))
+	}
 }
 
 func NewBinLogStream() *BinLogStream {
@@ -125,12 +180,15 @@ func (s *BinLogStream) parseRow(e *canal.RowsEvent, row []interface{}, dest inte
 		rowVal := row[colIdx]
 
 		switch f.Type().Name() {
-		case "int64":
-			f.SetInt(rowVal.(int64))
+		case "int64", "int32", "int16", "int8", "int":
+			f.SetInt(IntegerInterfaceToInt64(rowVal))
+		case "uint64", "uint32", "uint16", "uint8", "uint":
+			f.SetUint(IntegerInterfaceToUint64(rowVal))
 		case "string":
 			f.SetString(rowVal.(string))
 		case "bool":
-			if rowVal.(int8) == 0 {
+			v := IntegerInterfaceToInt64(rowVal)
+			if v == 0 {
 				f.SetBool(false)
 			} else {
 				f.SetBool(true)
