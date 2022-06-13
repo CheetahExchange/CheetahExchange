@@ -269,9 +269,10 @@ func (c *Client) onSub(currencyIds []string, productIds []string, channels []str
 			switch Channel(channel) {
 			case ChannelLevel2:
 				if c.subscribe(ChannelLevel2.FormatWithProductId(productId)) {
-					if len(c.l2ChangeCh) == 0 {
-						c.l2ChangeCh <- &Level2Change{ProductId: productId}
-					}
+					//if len(c.l2ChangeCh) == 0 {
+					//	c.l2ChangeCh <- &Level2Change{ProductId: productId}
+					//}
+					c.l2ChangeCh <- &Level2Change{ProductId: productId}
 				}
 
 			case ChannelMatch:
