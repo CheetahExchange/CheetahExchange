@@ -31,7 +31,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/common v0.2.0
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
-	github.com/segmentio/kafka-go v0.3.2
+	github.com/segmentio/kafka-go v0.4.33
 	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24
 	github.com/siddontang/go-log v0.0.0-20190221022429-1e957dd83bed
 	github.com/siddontang/go-mysql v0.0.0-20190720022221-046188b858f9
@@ -44,6 +44,5 @@ require (
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
-	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
