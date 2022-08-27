@@ -16,10 +16,10 @@ package worker
 
 import (
 	"encoding/json"
-	"github.com/gitbitex/gitbitex-spot/conf"
-	"github.com/gitbitex/gitbitex-spot/models"
-	"github.com/gitbitex/gitbitex-spot/service"
 	"github.com/go-redis/redis"
+	"github.com/mutalisk999/gitbitex-service-group/conf"
+	"github.com/mutalisk999/gitbitex-service-group/models"
+	"github.com/mutalisk999/gitbitex-service-group/service"
 	"github.com/siddontang/go-log/log"
 	"time"
 )

@@ -15,7 +15,7 @@
 package matching
 
 import (
-	"github.com/gitbitex/gitbitex-spot/models"
+	"github.com/mutalisk999/gitbitex-service-group/models"
 	"github.com/shopspring/decimal"
 	"time"
 )

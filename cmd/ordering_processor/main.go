@@ -15,10 +15,10 @@
 package main
 
 import (
-	"github.com/gitbitex/gitbitex-spot/conf"
-	"github.com/gitbitex/gitbitex-spot/matching"
-	"github.com/gitbitex/gitbitex-spot/service"
-	"github.com/gitbitex/gitbitex-spot/worker"
+	"github.com/mutalisk999/gitbitex-service-group/conf"
+	"github.com/mutalisk999/gitbitex-service-group/matching"
+	"github.com/mutalisk999/gitbitex-service-group/service"
+	"github.com/mutalisk999/gitbitex-service-group/worker"
 	_ "net/http/pprof"
 )
 

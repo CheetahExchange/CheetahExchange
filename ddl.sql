@@ -75,6 +75,8 @@ CREATE TABLE `g_order` (
   `type` varchar(255) NOT NULL,
   `side` varchar(255) NOT NULL,
   `time_in_force` varchar(255) DEFAULT NULL,
+  `taker_fee_ratio` decimal(32,16) NOT NULL DEFAULT '0.001',
+  `maker_fee_ratio` decimal(32,16) NOT NULL DEFAULT '0.0005',
   `status` varchar(255) NOT NULL,
   `settled` tinyint(1) NOT NULL DEFAULT '0',
   `client_oid` varchar(32) NOT NULL DEFAULT '',
@@ -137,13 +139,24 @@ CREATE TABLE `g_user` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `user_id` bigint(20) DEFAULT NULL,
+  `user_id` varchar(63) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
+  `user_level` varchar(63) NOT NULL DEFAULT 'v1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8;
 
+CREATE TABLE `g_fee_rate` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_level` varchar(63) NOT NULL,
+  `taker_fee_ratio` decimal(32,16) NOT NULL,
+  `maker_fee_ratio` decimal(32,16) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_user_level` (`user_level`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 insert into `g_product`(`id`,`created_at`,`updated_at`,`base_currency`,`quote_currency`,`base_min_size`,`base_max_size`,`base_scale`,`quote_scale`,`quote_increment`,`quote_min_size`,`quote_max_size`) values
 ('BCH-USDT',null,null,'BCH','USDT',0.0000100000000000,10000.0000000000000000,4,2,0.01,0E-16,0E-16),

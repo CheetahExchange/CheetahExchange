@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/gitbitex/gitbitex-spot/worker"
+	"github.com/mutalisk999/gitbitex-service-group/worker"
 	_ "net/http/pprof"
 )
 

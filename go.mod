@@ -1,4 +1,4 @@
-module github.com/gitbitex/gitbitex-spot
+module github.com/mutalisk999/gitbitex-service-group
 
 go 1.12
 

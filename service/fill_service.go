@@ -15,8 +15,8 @@
 package service
 
 import (
-	"github.com/gitbitex/gitbitex-spot/models"
-	"github.com/gitbitex/gitbitex-spot/models/mysql"
+	"github.com/mutalisk999/gitbitex-service-group/models"
+	"github.com/mutalisk999/gitbitex-service-group/models/mysql"
 )
 
 func GetUnsettledFills(count int32) ([]*models.Fill, error) {

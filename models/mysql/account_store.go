@@ -15,8 +15,8 @@
 package mysql
 
 import (
-	"github.com/gitbitex/gitbitex-spot/models"
 	"github.com/jinzhu/gorm"
+	"github.com/mutalisk999/gitbitex-service-group/models"
 	"time"
 )
 

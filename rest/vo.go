@@ -16,8 +16,8 @@ package rest
 
 import (
 	"fmt"
-	"github.com/gitbitex/gitbitex-spot/models"
-	"github.com/gitbitex/gitbitex-spot/utils"
+	"github.com/mutalisk999/gitbitex-service-group/models"
+	"github.com/mutalisk999/gitbitex-service-group/utils"
 	"strings"
 	"time"
 )

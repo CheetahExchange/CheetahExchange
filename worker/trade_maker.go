@@ -15,10 +15,10 @@
 package worker
 
 import (
-	"github.com/gitbitex/gitbitex-spot/matching"
-	"github.com/gitbitex/gitbitex-spot/models"
-	"github.com/gitbitex/gitbitex-spot/models/mysql"
-	"github.com/gitbitex/gitbitex-spot/service"
+	"github.com/mutalisk999/gitbitex-service-group/matching"
+	"github.com/mutalisk999/gitbitex-service-group/models"
+	"github.com/mutalisk999/gitbitex-service-group/models/mysql"
+	"github.com/mutalisk999/gitbitex-service-group/service"
 	"github.com/prometheus/common/log"
 	"time"
 )

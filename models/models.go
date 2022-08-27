@@ -112,7 +112,7 @@ type User struct {
 	Id           int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
-	UserId       int64
+	UserId       string
 	Email        string
 	PasswordHash string
 }

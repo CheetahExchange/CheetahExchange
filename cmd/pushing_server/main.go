@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/gitbitex/gitbitex-spot/pushing"
+	"github.com/mutalisk999/gitbitex-service-group/pushing"
 	_ "net/http/pprof"
 )
 

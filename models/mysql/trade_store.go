@@ -16,8 +16,8 @@ package mysql
 
 import (
 	"fmt"
-	"github.com/gitbitex/gitbitex-spot/models"
 	"github.com/jinzhu/gorm"
+	"github.com/mutalisk999/gitbitex-service-group/models"
 	"strings"
 	"time"
 )

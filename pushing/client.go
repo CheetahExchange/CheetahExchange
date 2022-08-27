@@ -17,8 +17,8 @@ package pushing
 import (
 	"context"
 	"encoding/json"
-	"github.com/gitbitex/gitbitex-spot/service"
 	"github.com/gorilla/websocket"
+	"github.com/mutalisk999/gitbitex-service-group/service"
 	"github.com/siddontang/go-log/log"
 	"sync"
 	"sync/atomic"
