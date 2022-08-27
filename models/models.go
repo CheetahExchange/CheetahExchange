@@ -73,6 +73,25 @@ func (t OrderStatus) String() string {
 	return string(t)
 }
 
+// Time In Force状态
+type TimeInForceType string
+
+func NewTimeInForceTypeFromString(s string) (*TimeInForceType, error) {
+	timeInForce := TimeInForceType(s)
+	switch timeInForce {
+	case GoodTillCanceled:
+	case ImmediateOrCancel:
+	case GoodTillCrossing:
+	default:
+		return nil, fmt.Errorf("invalid timeInForce: %v", s)
+	}
+	return &timeInForce, nil
+}
+
+func (t TimeInForceType) String() string {
+	return string(t)
+}
+
 // 用于表示账单类型
 type BillType string
 
@@ -84,6 +103,10 @@ type TransactionStatus string
 const (
 	OrderTypeLimit  = OrderType("limit")
 	OrderTypeMarket = OrderType("market")
+
+	GoodTillCanceled  = TimeInForceType("GTC")
+	ImmediateOrCancel = TimeInForceType("IOC")
+	GoodTillCrossing  = TimeInForceType("GTX")
 
 	SideBuy  = Side("buy")
 	SideSell = Side("sell")
@@ -170,7 +193,7 @@ type Order struct {
 	FillFees      decimal.Decimal `sql:"type:decimal(32,16);"`
 	Type          OrderType
 	Side          Side
-	TimeInForce   string
+	TimeInForce   TimeInForceType
 	Status        OrderStatus
 	Settled       bool
 }

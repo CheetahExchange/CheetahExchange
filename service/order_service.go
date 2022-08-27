@@ -24,8 +24,8 @@ import (
 	"log"
 )
 
-func PlaceOrder(userId int64, clientOid string, productId string, orderType models.OrderType, side models.Side,
-	size, price, funds decimal.Decimal) (*models.Order, error) {
+func PlaceOrder(userId int64, clientOid string, productId string, orderType models.OrderType,
+	timeInForce models.TimeInForceType, side models.Side, size, price, funds decimal.Decimal) (*models.Order, error) {
 	product, err := GetProductById(productId)
 	if err != nil {
 		return nil, err
@@ -73,15 +73,16 @@ func PlaceOrder(userId int64, clientOid string, productId string, orderType mode
 	}
 
 	order := &models.Order{
-		ClientOid: clientOid,
-		UserId:    userId,
-		ProductId: product.Id,
-		Side:      side,
-		Size:      size,
-		Funds:     funds,
-		Price:     price,
-		Status:    models.OrderStatusNew,
-		Type:      orderType,
+		ClientOid:   clientOid,
+		UserId:      userId,
+		ProductId:   product.Id,
+		Side:        side,
+		Size:        size,
+		Funds:       funds,
+		Price:       price,
+		Status:      models.OrderStatusNew,
+		Type:        orderType,
+		TimeInForce: timeInForce,
 	}
 
 	// tx

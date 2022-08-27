@@ -86,6 +86,46 @@ func NewOrderBook(product *models.Product) *orderBook {
 	return orderBook
 }
 
+func (o *orderBook) IsOrderPending(order *models.Order) bool {
+	takerOrder := newBookOrder(order)
+
+	// If it's a Market-Buy order, set price to infinite high, and if it's market-sell,
+	// set price to zero, which ensures that prices will cross.
+	if takerOrder.Type == models.OrderTypeMarket {
+		if takerOrder.Side == models.SideBuy {
+			takerOrder.Price = decimal.NewFromFloat(math.MaxFloat32)
+		} else {
+			takerOrder.Price = decimal.Zero
+		}
+	}
+
+	makerDepth := o.depths[takerOrder.Side.Opposite()]
+
+	if takerOrder.Side == models.SideBuy {
+		k, v := makerDepth.queue.Min()
+		if k == nil || v == nil {
+			return true
+		}
+
+		makerOrder := makerDepth.orders[v.(int64)]
+		if takerOrder.Price.LessThan(makerOrder.Price) {
+			return true
+		}
+	} else if takerOrder.Side == models.SideSell {
+		k, v := makerDepth.queue.Max()
+		if k == nil || v == nil {
+			return true
+		}
+
+		makerOrder := makerDepth.orders[v.(int64)]
+		if takerOrder.Price.GreaterThan(makerOrder.Price) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (o *orderBook) ApplyOrder(order *models.Order) (logs []Log) {
 	// prevent orders from being submitted repeatedly to the matching engine
 	err := o.orderIdWindow.put(order.Id)

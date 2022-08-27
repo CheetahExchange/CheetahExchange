@@ -131,7 +131,24 @@ func (e *Engine) runApplier() {
 			if offsetOrder.Order.Status == models.OrderStatusCancelling {
 				logs = e.OrderBook.CancelOrder(offsetOrder.Order)
 			} else {
-				logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
+				//logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
+
+				if offsetOrder.Order.TimeInForce == "IOC" {
+					logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
+					// cancel the rest size
+					iocLogs := e.OrderBook.CancelOrder(offsetOrder.Order)
+					if len(iocLogs) != 0 {
+						logs = append(logs, iocLogs...)
+					}
+				} else if offsetOrder.Order.TimeInForce == "GTX" {
+					if e.OrderBook.IsOrderPending(offsetOrder.Order) {
+						logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
+					} else {
+						logs = e.OrderBook.CancelOrder(offsetOrder.Order)
+					}
+				} else if offsetOrder.Order.TimeInForce == "GTC" {
+					logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
+				}
 			}
 
 			// 将orderBook产生的log写入chan进行持久化

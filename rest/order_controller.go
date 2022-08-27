@@ -88,6 +88,11 @@ func PlaceOrder(ctx *gin.Context) {
 		orderType = models.OrderTypeLimit
 	}
 
+	timeInForce := models.TimeInForceType(req.TimeInForce)
+	if len(timeInForce) == 0 {
+		timeInForce = models.GoodTillCanceled
+	}
+
 	if len(req.ClientOid) > 0 {
 		_, err = uuid.Parse(req.ClientOid)
 		if err != nil {
@@ -103,7 +108,7 @@ func PlaceOrder(ctx *gin.Context) {
 	price := decimal.NewFromFloat(req.Price)
 	funds := decimal.NewFromFloat(req.Funds)
 
-	order, err := service.PlaceOrder(GetCurrentUser(ctx).Id, req.ClientOid, req.ProductId, orderType,
+	order, err := service.PlaceOrder(GetCurrentUser(ctx).Id, req.ClientOid, req.ProductId, orderType, timeInForce,
 		side, size, price, funds)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, newMessageVo(err))
