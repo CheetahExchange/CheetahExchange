@@ -24,7 +24,7 @@ import (
 	"log"
 )
 
-func PlaceOrder(userId int64, clientOid string, productId string, orderType models.OrderType,
+func PlaceOrder(userId int64, userLevel string, clientOid string, productId string, orderType models.OrderType,
 	timeInForce models.TimeInForceType, side models.Side, size, price, funds decimal.Decimal) (*models.Order, error) {
 	product, err := GetProductById(productId)
 	if err != nil {
@@ -32,6 +32,14 @@ func PlaceOrder(userId int64, clientOid string, productId string, orderType mode
 	}
 	if product == nil {
 		return nil, errors.New(fmt.Sprintf("product not found: %v", productId))
+	}
+
+	feeRate, err := GetFeeRateByUserLevel(userLevel)
+	if err != nil {
+		return nil, err
+	}
+	if feeRate == nil {
+		return nil, errors.New(fmt.Sprintf("feeRate not found: %v", userLevel))
 	}
 
 	if orderType == models.OrderTypeLimit {
@@ -83,6 +91,9 @@ func PlaceOrder(userId int64, clientOid string, productId string, orderType mode
 		Status:      models.OrderStatusNew,
 		Type:        orderType,
 		TimeInForce: timeInForce,
+
+		TakerFeeRatio: feeRate.TakerFeeRatio,
+		MakerFeeRatio: feeRate.MakerFeeRatio,
 	}
 
 	// tx
@@ -156,8 +167,18 @@ func ExecuteFill(orderId int64) error {
 			order.FilledSize = order.FilledSize.Add(fill.Size)
 
 			if order.Side == models.SideBuy {
+				fee := decimal.NewFromInt(0)
+				if fill.Liquidity == "T" {
+					fee = fill.Size.Mul(order.TakerFeeRatio)
+				} else if fill.Liquidity == "M" {
+					fee = fill.Size.Mul(order.MakerFeeRatio)
+				} else {
+					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
+				}
+				order.FillFees.Add(fee)
+
 				// 买单，incr base
-				bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, fill.Size, decimal.Zero,
+				bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, fill.Size.Sub(fee), decimal.Zero,
 					models.BillTypeTrade, notes)
 				if err != nil {
 					return err
@@ -173,6 +194,16 @@ func ExecuteFill(orderId int64) error {
 				bills = append(bills, bill)
 
 			} else {
+				fee := decimal.NewFromInt(0)
+				if fill.Liquidity == "T" {
+					fee = executedValue.Mul(order.TakerFeeRatio)
+				} else if fill.Liquidity == "M" {
+					fee = executedValue.Mul(order.MakerFeeRatio)
+				} else {
+					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
+				}
+				order.FillFees.Add(fee)
+
 				// 卖单，decr base
 				bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, decimal.Zero, fill.Size.Neg(),
 					models.BillTypeTrade, notes)
@@ -182,7 +213,7 @@ func ExecuteFill(orderId int64) error {
 				bills = append(bills, bill)
 
 				// 卖单，incr quote
-				bill, err = AddDelayBill(db, order.UserId, product.QuoteCurrency, executedValue, decimal.Zero,
+				bill, err = AddDelayBill(db, order.UserId, product.QuoteCurrency, executedValue.Sub(fee), decimal.Zero,
 					models.BillTypeTrade, notes)
 				if err != nil {
 					return err

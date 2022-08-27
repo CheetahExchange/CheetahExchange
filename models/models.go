@@ -138,6 +138,7 @@ type User struct {
 	UserId       string
 	Email        string
 	PasswordHash string
+	UserLevel    string
 }
 
 type Account struct {
@@ -194,6 +195,8 @@ type Order struct {
 	Type          OrderType
 	Side          Side
 	TimeInForce   TimeInForceType
+	TakerFeeRatio decimal.Decimal `sql:"type:decimal(32,16);"`
+	MakerFeeRatio decimal.Decimal `sql:"type:decimal(32,16);"`
 	Status        OrderStatus
 	Settled       bool
 }
@@ -271,4 +274,13 @@ type Transaction struct {
 	ToAddress   string
 	Note        string
 	TxId        string
+}
+
+type FeeRate struct {
+	Id            int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	UserLevel     string
+	TakerFeeRatio decimal.Decimal `sql:"type:decimal(32,16);"`
+	MakerFeeRatio decimal.Decimal `sql:"type:decimal(32,16);"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
