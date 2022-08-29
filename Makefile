@@ -3,11 +3,11 @@ GOFLAGS=-ldflags '-w -s'
 
 ###############################
 
-all: billing_processor binlog_processor matching_engine ordering_processor trading_processor pushing_server rest_server
+all: bill_executor matching_engine matching_log_maker fill_executor pushing_server rest_server
 .PHONY: all
 
-clean: billing_processor_clean binlog_processor_clean matching_engine_clean ordering_processor_clean \
-	trading_processor_clean pushing_server_clean rest_server_clean
+clean: bill_executor_clean matching_engine_clean matching_log_maker_clean \
+	fill_executor_clean pushing_server_clean rest_server_clean
 .PHONY: clean
 
 legacy: gitbitex_spot
@@ -18,21 +18,13 @@ legacy_clean: gitbitex_spot_clean
 
 ###############################
 
-billing_processor: billing_processor_clean
-	$(GOCC) build $(GOFLAGS) ./cmd/billing_processor
-.PHONY: billing_processor
+bill_executor: bill_executor_clean
+	$(GOCC) build $(GOFLAGS) ./cmd/bill_executor
+.PHONY: bill_executor
 
-billing_processor_clean:
-	rm -f billing_processor
-.PHONY: billing_processor_clean
-
-binlog_processor: binlog_processor_clean
-	$(GOCC) build $(GOFLAGS) ./cmd/binlog_processor
-.PHONY: binlog_processor
-
-binlog_processor_clean:
-	rm -f binlog_processor
-.PHONY: binlog_processor_clean
+bill_executor_clean:
+	rm -f bill_executor
+.PHONY: bill_executor_clean
 
 matching_engine: matching_engine_clean
 	$(GOCC) build $(GOFLAGS) ./cmd/matching_engine
@@ -42,21 +34,21 @@ matching_engine_clean:
 	rm -f matching_engine
 .PHONY: matching_engine_clean
 
-ordering_processor: ordering_processor_clean
-	$(GOCC) build $(GOFLAGS) ./cmd/ordering_processor
-.PHONY: ordering_processor
+matching_log_maker: matching_log_maker_clean
+	$(GOCC) build $(GOFLAGS) ./cmd/matching_log_maker
+.PHONY: matching_log_maker
 
-ordering_processor_clean:
-	rm -f ordering_processor
-.PHONY: ordering_processor_clean
+matching_log_maker_clean:
+	rm -f matching_log_maker
+.PHONY: matching_log_maker_clean
 
-trading_processor: trading_processor_clean
-	$(GOCC) build $(GOFLAGS) ./cmd/trading_processor
-.PHONY: trading_processor
+fill_executor: fill_executor_clean
+	$(GOCC) build $(GOFLAGS) ./cmd/fill_executor
+.PHONY: fill_executor
 
-trading_processor_clean:
-	rm -f trading_processor
-.PHONY: trading_processor_clean
+fill_executor_clean:
+	rm -f fill_executor
+.PHONY: fill_executor_clean
 
 pushing_server: pushing_server_clean
 	$(GOCC) build $(GOFLAGS) ./cmd/pushing_server

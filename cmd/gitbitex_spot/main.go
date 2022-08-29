@@ -24,21 +24,16 @@ import (
 )
 
 func main() {
-	//go func() {
-	//	log.Info(http.ListenAndServe("localhost:6060", nil))
-	//}()
-
-	go models.NewBinLogStream().Start()
-
 	matching.StartEngine()
 
+	go models.NewBinLogStream().Start()
 	pushing.StartServer()
 
 	worker.NewFillExecutor().Start()
 
 	worker.NewBillExecutor().Start()
 
-	worker.StartMaker()
+	worker.StartMatchingLogMaker()
 
 	rest.StartServer()
 

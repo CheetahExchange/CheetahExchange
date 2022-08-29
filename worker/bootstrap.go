@@ -11,7 +11,7 @@ import (
 
 var productsSupported sync.Map
 
-func StartMaker() {
+func StartMatchingLogMaker() {
 	gbeConfig := conf.GetConfig()
 
 	go func() {

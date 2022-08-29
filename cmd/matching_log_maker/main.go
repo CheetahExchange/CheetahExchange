@@ -15,11 +15,11 @@
 package main
 
 import (
-	"github.com/mutalisk999/gitbitex-service-group/matching"
+	"github.com/mutalisk999/gitbitex-service-group/worker"
 	_ "net/http/pprof"
 )
 
 func main() {
-	matching.StartEngine()
+	worker.StartMatchingLogMaker()
 	select {}
 }

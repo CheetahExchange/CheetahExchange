@@ -15,36 +15,13 @@
 package main
 
 import (
+	"github.com/mutalisk999/gitbitex-service-group/models"
 	"github.com/mutalisk999/gitbitex-service-group/pushing"
 	_ "net/http/pprof"
 )
 
 func main() {
-	//gbeConfig := conf.GetConfig()
-	//
-	//go func() {
-	//	log.Info(http.ListenAndServe("localhost:6060", nil))
-	//}()
-	//
-	//go models.NewBinLogStream().Start()
-	//
-	//matching.StartEngine()
-
+	go models.NewBinLogStream().Start()
 	pushing.StartServer()
-
-	//worker.NewFillExecutor().Start()
-	//worker.NewBillExecutor().Start()
-	//products, err := service.GetProducts()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//for _, product := range products {
-	//	worker.NewTickMaker(product.Id, matching.NewKafkaLogReader("tickMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-	//	worker.NewFillMaker(matching.NewKafkaLogReader("fillMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-	//	worker.NewTradeMaker(matching.NewKafkaLogReader("tradeMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-	//}
-	//
-	//rest.StartServer()
-
 	select {}
 }
