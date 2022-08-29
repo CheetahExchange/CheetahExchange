@@ -15,24 +15,18 @@
 package main
 
 import (
-	"github.com/mutalisk999/gitbitex-service-group/conf"
 	"github.com/mutalisk999/gitbitex-service-group/matching"
 	"github.com/mutalisk999/gitbitex-service-group/models"
 	"github.com/mutalisk999/gitbitex-service-group/pushing"
 	"github.com/mutalisk999/gitbitex-service-group/rest"
-	"github.com/mutalisk999/gitbitex-service-group/service"
 	"github.com/mutalisk999/gitbitex-service-group/worker"
-	"github.com/prometheus/common/log"
-	"net/http"
 	_ "net/http/pprof"
 )
 
 func main() {
-	gbeConfig := conf.GetConfig()
-
-	go func() {
-		log.Info(http.ListenAndServe("localhost:6060", nil))
-	}()
+	//go func() {
+	//	log.Info(http.ListenAndServe("localhost:6060", nil))
+	//}()
 
 	go models.NewBinLogStream().Start()
 
@@ -41,16 +35,10 @@ func main() {
 	pushing.StartServer()
 
 	worker.NewFillExecutor().Start()
+
 	worker.NewBillExecutor().Start()
-	products, err := service.GetProducts()
-	if err != nil {
-		panic(err)
-	}
-	for _, product := range products {
-		worker.NewTickMaker(product.Id, matching.NewKafkaLogReader("tickMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-		worker.NewFillMaker(matching.NewKafkaLogReader("fillMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-		worker.NewTradeMaker(matching.NewKafkaLogReader("tradeMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-	}
+
+	worker.StartMaker()
 
 	rest.StartServer()
 

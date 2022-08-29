@@ -15,15 +15,12 @@
 package main
 
 import (
-	"github.com/mutalisk999/gitbitex-service-group/conf"
-	"github.com/mutalisk999/gitbitex-service-group/matching"
-	"github.com/mutalisk999/gitbitex-service-group/service"
 	"github.com/mutalisk999/gitbitex-service-group/worker"
 	_ "net/http/pprof"
 )
 
 func main() {
-	gbeConfig := conf.GetConfig()
+	//gbeConfig := conf.GetConfig()
 	//
 	//go func() {
 	//	log.Info(http.ListenAndServe("localhost:6060", nil))
@@ -37,15 +34,16 @@ func main() {
 	//
 	//worker.NewFillExecutor().Start()
 	//worker.NewBillExecutor().Start()
-	products, err := service.GetProducts()
-	if err != nil {
-		panic(err)
-	}
-	for _, product := range products {
-		worker.NewTickMaker(product.Id, matching.NewKafkaLogReader("tickMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-		worker.NewFillMaker(matching.NewKafkaLogReader("fillMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-		worker.NewTradeMaker(matching.NewKafkaLogReader("tradeMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-	}
+	//products, err := service.GetProducts()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//for _, product := range products {
+	//	worker.NewTickMaker(product.Id, matching.NewKafkaLogReader("tickMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
+	//	worker.NewFillMaker(matching.NewKafkaLogReader("fillMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
+	//	worker.NewTradeMaker(matching.NewKafkaLogReader("tradeMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
+	//}
+	worker.StartMaker()
 
 	//rest.StartServer()
 

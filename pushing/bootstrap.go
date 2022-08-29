@@ -19,7 +19,11 @@ import (
 	"github.com/mutalisk999/gitbitex-service-group/matching"
 	"github.com/mutalisk999/gitbitex-service-group/service"
 	"github.com/siddontang/go-log/log"
+	"sync"
+	"time"
 )
+
+var productsSupported sync.Map
 
 func StartServer() {
 	gbeConfig := conf.GetConfig()
@@ -28,15 +32,25 @@ func StartServer() {
 
 	newRedisStream(sub).Start()
 
-	products, err := service.GetProducts()
-	if err != nil {
-		panic(err)
-	}
-	for _, product := range products {
-		newTickerStream(product.Id, sub, matching.NewKafkaLogReader("tickerStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
-		newMatchStream(product.Id, sub, matching.NewKafkaLogReader("matchStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
-		newOrderBookStream(product.Id, sub, matching.NewKafkaLogReader("orderBookStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
-	}
+	go func() {
+		for {
+			products, err := service.GetProducts()
+			if err != nil {
+				panic(err)
+			}
+			for _, product := range products {
+				_, ok := productsSupported.Load(product.Id)
+				if !ok {
+					newTickerStream(product.Id, sub, matching.NewKafkaLogReader("tickerStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
+					newMatchStream(product.Id, sub, matching.NewKafkaLogReader("matchStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
+					newOrderBookStream(product.Id, sub, matching.NewKafkaLogReader("orderBookStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
+					productsSupported.Store(product.Id, true)
+					log.Infof("start stream for %s ok", product.Id)
+				}
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	go NewServer(gbeConfig.PushServer.Addr, gbeConfig.PushServer.Path, sub).Run()
 
