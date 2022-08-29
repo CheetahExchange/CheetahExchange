@@ -31,6 +31,10 @@ func (t Channel) FormatWithProductId(productId string) string {
 	return fmt.Sprintf("%v:%v", t, productId)
 }
 
+func CandlesFormatWithGranularityProductId(granularity int64, productId string) string {
+	return fmt.Sprintf("candles_%dm:%v", granularity, productId)
+}
+
 const (
 	Level2TypeSnapshot = Level2Type("snapshot")
 	Level2TypeUpdate   = Level2Type("l2update")
@@ -40,6 +44,18 @@ const (
 	ChannelLevel2 = Channel("level2")
 	ChannelFunds  = Channel("funds")
 	ChannelOrder  = Channel("order")
+
+	ChannelCandles1m    = Channel("candles_1m")
+	ChannelCandles3m    = Channel("candles_3m")
+	ChannelCandles5m    = Channel("candles_5m")
+	ChannelCandles15m   = Channel("candles_15m")
+	ChannelCandles30m   = Channel("candles_30m")
+	ChannelCandles60m   = Channel("candles_60m")
+	ChannelCandles120m  = Channel("candles_120m")
+	ChannelCandles240m  = Channel("candles_240m")
+	ChannelCandles360m  = Channel("candles_360m")
+	ChannelCandles720m  = Channel("candles_720m")
+	ChannelCandles1440m = Channel("candles_1440m")
 )
 
 type Request struct {
@@ -106,6 +122,17 @@ type TickerMessage struct {
 	Volume30d string `json:"volume30d"`
 	Low24h    string `json:"low24h"`
 	Open24h   string `json:"open24h"`
+}
+
+type CandlesMessage struct {
+	Type      string `json:"type"`
+	ProductId string `json:"productId"`
+	Time      string `json:"time"`
+	Open      string `json:"open"`
+	Close     string `json:"close"`
+	Low       string `json:"low"`
+	High      string `json:"high"`
+	Volume    string `json:"volume"`
 }
 
 type FundsMessage struct {

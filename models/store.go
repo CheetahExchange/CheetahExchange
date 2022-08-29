@@ -60,6 +60,7 @@ type Store interface {
 
 	GetTicksByProductId(productId string, granularity int64, limit int) ([]*Tick, error)
 	GetLastTickByProductId(productId string, granularity int64) (*Tick, error)
+	GetLastTicksAllByProductId(productId string) ([]*Tick, error)
 	AddTicks(ticks []*Tick) error
 
 	GetFeeRateByUserLevel(userLevel string) (*FeeRate, error)

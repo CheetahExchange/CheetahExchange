@@ -39,6 +39,16 @@ func (s *Store) GetLastTickByProductId(productId string, granularity int64) (*mo
 	return &tick, err
 }
 
+func (s *Store) GetLastTicksAllByProductId(productId string) ([]*models.Tick, error) {
+	var ticks []*models.Tick
+	err := s.db.Raw("SELECT t1.* FROM "+
+		" (SELECT * FROM g_tick WHERE product_id = ?) as t1, "+
+		" (SELECT max(time) as last, granularity FROM g_tick WHERE product_id = ? GROUP BY granularity) as t2 "+
+		" WHERE t1.time = t2.last AND t1.granularity = t2.granularity ",
+		productId, productId).Scan(&ticks).Error
+	return ticks, err
+}
+
 func (s *Store) AddTicks(ticks []*models.Tick) error {
 	if len(ticks) == 0 {
 		return nil

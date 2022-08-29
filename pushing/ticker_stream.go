@@ -15,6 +15,7 @@
 package pushing
 
 import (
+	"fmt"
 	"github.com/mutalisk999/gitbitex-service-group/matching"
 	"github.com/mutalisk999/gitbitex-service-group/models"
 	"github.com/mutalisk999/gitbitex-service-group/service"
@@ -27,12 +28,13 @@ import (
 const intervalSec = 3
 
 type TickerStream struct {
-	productId      string
-	sub            *subscription
-	bestBid        decimal.Decimal
-	bestAsk        decimal.Decimal
-	logReader      matching.LogReader
-	lastTickerTime int64
+	productId       string
+	sub             *subscription
+	bestBid         decimal.Decimal
+	bestAsk         decimal.Decimal
+	logReader       matching.LogReader
+	lastTickerTime  int64
+	lastCandlesTime int64
 }
 
 func newTickerStream(productId string, sub *subscription, logReader matching.LogReader) *TickerStream {
@@ -73,6 +75,24 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 		s.sub.publish(ChannelTicker.FormatWithProductId(log.ProductId), ticker)
 		s.lastTickerTime = time.Now().Unix()
 	}
+
+	// publish candles info one second in the future
+	if time.Now().Unix()-s.lastCandlesTime > 1 {
+		go func(delaySec int64, productId string) {
+			select {
+			case <-time.After(time.Duration(delaySec) * time.Second):
+				ticks, err := service.GetLastTicksAllByProductId(productId)
+				if err != nil {
+					return
+				}
+				for _, tick := range ticks {
+					candles := s.newCandlesMessage(tick.Granularity, productId, tick)
+					s.sub.publish(CandlesFormatWithGranularityProductId(tick.Granularity, productId), candles)
+				}
+			}
+		}(1, log.ProductId)
+		s.lastCandlesTime = time.Now().Unix()
+	}
 }
 
 func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage, error) {
@@ -108,6 +128,19 @@ func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage,
 		Volume24h: tick24h.Volume.String(),
 		Volume30d: tick30d.Volume.String(),
 	}, nil
+}
+
+func (s *TickerStream) newCandlesMessage(granularity int64, productId string, tick *models.Tick) *CandlesMessage {
+	return &CandlesMessage{
+		Type:      fmt.Sprintf("candles_%dm", granularity),
+		ProductId: productId,
+		Time:      time.Unix(tick.Time, 0).Format(time.RFC3339),
+		Open:      tick.Open.String(),
+		Close:     tick.Close.String(),
+		Low:       tick.Low.String(),
+		High:      tick.High.String(),
+		Volume:    tick.Volume.String(),
+	}
 }
 
 func mergeTicks(ticks []*models.Tick) *models.Tick {

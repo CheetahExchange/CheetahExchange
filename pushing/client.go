@@ -289,6 +289,39 @@ func (c *Client) onSub(currencyIds []string, productIds []string, channels []str
 			case ChannelOrder:
 				c.subscribe(ChannelOrder.Format(productId, userId))
 
+			case ChannelCandles1m:
+				c.subscribe(ChannelCandles1m.FormatWithProductId(productId))
+
+			case ChannelCandles3m:
+				c.subscribe(ChannelCandles3m.FormatWithProductId(productId))
+
+			case ChannelCandles5m:
+				c.subscribe(ChannelCandles5m.FormatWithProductId(productId))
+
+			case ChannelCandles15m:
+				c.subscribe(ChannelCandles15m.FormatWithProductId(productId))
+
+			case ChannelCandles30m:
+				c.subscribe(ChannelCandles30m.FormatWithProductId(productId))
+
+			case ChannelCandles60m:
+				c.subscribe(ChannelCandles60m.FormatWithProductId(productId))
+
+			case ChannelCandles120m:
+				c.subscribe(ChannelCandles120m.FormatWithProductId(productId))
+
+			case ChannelCandles240m:
+				c.subscribe(ChannelCandles240m.FormatWithProductId(productId))
+
+			case ChannelCandles360m:
+				c.subscribe(ChannelCandles360m.FormatWithProductId(productId))
+
+			case ChannelCandles720m:
+				c.subscribe(ChannelCandles720m.FormatWithProductId(productId))
+
+			case ChannelCandles1440m:
+				c.subscribe(ChannelCandles1440m.FormatWithProductId(productId))
+
 			default:
 				continue
 			}
@@ -331,6 +364,39 @@ func (c *Client) onUnSub(currencyIds []string, productIds []string, channels []s
 
 			case ChannelOrder:
 				c.unsubscribe(ChannelOrder.Format(productId, userId))
+
+			case ChannelCandles1m:
+				c.unsubscribe(ChannelCandles1m.FormatWithProductId(productId))
+
+			case ChannelCandles3m:
+				c.unsubscribe(ChannelCandles3m.FormatWithProductId(productId))
+
+			case ChannelCandles5m:
+				c.unsubscribe(ChannelCandles5m.FormatWithProductId(productId))
+
+			case ChannelCandles15m:
+				c.unsubscribe(ChannelCandles15m.FormatWithProductId(productId))
+
+			case ChannelCandles30m:
+				c.unsubscribe(ChannelCandles30m.FormatWithProductId(productId))
+
+			case ChannelCandles60m:
+				c.unsubscribe(ChannelCandles60m.FormatWithProductId(productId))
+
+			case ChannelCandles120m:
+				c.unsubscribe(ChannelCandles120m.FormatWithProductId(productId))
+
+			case ChannelCandles240m:
+				c.unsubscribe(ChannelCandles240m.FormatWithProductId(productId))
+
+			case ChannelCandles360m:
+				c.unsubscribe(ChannelCandles360m.FormatWithProductId(productId))
+
+			case ChannelCandles720m:
+				c.unsubscribe(ChannelCandles720m.FormatWithProductId(productId))
+
+			case ChannelCandles1440m:
+				c.unsubscribe(ChannelCandles1440m.FormatWithProductId(productId))
 
 			default:
 				continue
