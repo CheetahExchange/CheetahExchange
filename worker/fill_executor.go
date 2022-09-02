@@ -15,8 +15,9 @@
 package worker
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/mutalisk999/gitbitex-service-group/conf"
 	"github.com/mutalisk999/gitbitex-service-group/models"
@@ -94,7 +95,7 @@ func (s *FillExecutor) runMqListener() {
 	})
 
 	for {
-		ret := redisClient.BRPop(time.Second*1000, models.TopicFill)
+		ret := redisClient.BRPop(context.Background(), time.Second*1000, models.TopicFill)
 		if ret.Err() != nil {
 			log.Error(ret.Err())
 			continue

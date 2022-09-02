@@ -15,8 +15,9 @@
 package pushing
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/mutalisk999/gitbitex-service-group/conf"
 	"github.com/mutalisk999/gitbitex-service-group/models"
 	"github.com/mutalisk999/gitbitex-service-group/utils"
@@ -45,15 +46,15 @@ func (s *redisStream) Start() {
 		Password: gbeConfig.Redis.Password,
 		DB:       0,
 	})
-	_, err := redisClient.Ping().Result()
+	_, err := redisClient.Ping(context.Background()).Result()
 	if err != nil {
 		panic(err)
 	}
 
 	go func() {
 		for {
-			ps := redisClient.Subscribe(models.TopicOrder)
-			_, err := ps.Receive()
+			ps := redisClient.Subscribe(context.Background(), models.TopicOrder)
+			_, err := ps.Receive(context.Background())
 			if err != nil {
 				log.Error(err)
 				continue
@@ -93,8 +94,8 @@ func (s *redisStream) Start() {
 
 	go func() {
 		for {
-			ps := redisClient.Subscribe(models.TopicAccount)
-			_, err := ps.Receive()
+			ps := redisClient.Subscribe(context.Background(), models.TopicAccount)
+			_, err := ps.Receive(context.Background())
 			if err != nil {
 				log.Error(err)
 				continue

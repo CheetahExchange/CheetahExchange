@@ -15,9 +15,10 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/mutalisk999/gitbitex-service-group/conf"
 	"github.com/mutalisk999/gitbitex-service-group/utils"
 	"github.com/shopspring/decimal"
@@ -116,7 +117,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 		s.parseRow(e, e.Rows[n], &v)
 
 		buf, _ := json.Marshal(v)
-		ret := s.redisClient.Publish(TopicOrder, buf)
+		ret := s.redisClient.Publish(context.Background(), TopicOrder, buf)
 		if ret.Err() != nil {
 			log.Error(ret.Err())
 		}
@@ -131,7 +132,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 		s.parseRow(e, e.Rows[n], &v)
 
 		buf, _ := json.Marshal(v)
-		ret := s.redisClient.Publish(TopicAccount, buf)
+		ret := s.redisClient.Publish(context.Background(), TopicAccount, buf)
 		if ret.Err() != nil {
 			log.Error(ret.Err())
 		}
@@ -145,7 +146,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 		s.parseRow(e, e.Rows[0], &v)
 
 		buf, _ := json.Marshal(v)
-		ret := s.redisClient.LPush(TopicFill, buf)
+		ret := s.redisClient.LPush(context.Background(), TopicFill, buf)
 		if ret.Err() != nil {
 			log.Error(ret.Err())
 		}
@@ -159,7 +160,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 		s.parseRow(e, e.Rows[0], &v)
 
 		buf, _ := json.Marshal(v)
-		ret := s.redisClient.LPush(TopicBill, buf)
+		ret := s.redisClient.LPush(context.Background(), TopicBill, buf)
 		if ret.Err() != nil {
 			log.Error(ret.Err())
 		}

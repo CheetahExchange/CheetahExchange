@@ -14,7 +14,7 @@ require (
 	github.com/etcd-io/gofail v0.0.0-20190801230047-ad7f989257ca // indirect
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.5.0
-	github.com/go-redis/redis v6.15.2+incompatible
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
 	github.com/google/uuid v1.1.1

@@ -15,8 +15,9 @@
 package worker
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/mutalisk999/gitbitex-service-group/conf"
 	"github.com/mutalisk999/gitbitex-service-group/models"
 	"github.com/mutalisk999/gitbitex-service-group/service"
@@ -66,7 +67,7 @@ func (s *BillExecutor) runMqListener() {
 	})
 
 	for {
-		ret := redisClient.BRPop(time.Second*1000, models.TopicBill)
+		ret := redisClient.BRPop(context.Background(), time.Second*1000, models.TopicBill)
 		if ret.Err() != nil {
 			log.Error(ret.Err())
 			continue

@@ -15,10 +15,11 @@
 package pushing
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/emirpasic/gods/maps/treemap"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/mutalisk999/gitbitex-service-group/conf"
 	"github.com/mutalisk999/gitbitex-service-group/matching"
 	"github.com/mutalisk999/gitbitex-service-group/models"
@@ -220,11 +221,11 @@ func (s *redisSnapshotStore) storeLevel2(productId string, snapshot *OrderBookLe
 	if err != nil {
 		return err
 	}
-	return s.redisClient.Set(orderBookL2SnapshotKeyPrefix+productId, buf, 7*24*time.Hour).Err()
+	return s.redisClient.Set(context.Background(), orderBookL2SnapshotKeyPrefix+productId, buf, 7*24*time.Hour).Err()
 }
 
 func (s *redisSnapshotStore) getLastLevel2(productId string) (*OrderBookLevel2Snapshot, error) {
-	ret, err := s.redisClient.Get(orderBookL2SnapshotKeyPrefix + productId).Bytes()
+	ret, err := s.redisClient.Get(context.Background(), orderBookL2SnapshotKeyPrefix+productId).Bytes()
 	if err != nil {
 		if err == redis.Nil {
 			return nil, nil
@@ -243,11 +244,11 @@ func (s *redisSnapshotStore) storeFull(productId string, snapshot *OrderBookFull
 	if err != nil {
 		return err
 	}
-	return s.redisClient.Set(orderBookFullSnapshotKeyPrefix+productId, buf, 7*24*time.Hour).Err()
+	return s.redisClient.Set(context.Background(), orderBookFullSnapshotKeyPrefix+productId, buf, 7*24*time.Hour).Err()
 }
 
 func (s *redisSnapshotStore) getLastFull(productId string) (*OrderBookFullSnapshot, error) {
-	ret, err := s.redisClient.Get(orderBookFullSnapshotKeyPrefix + productId).Bytes()
+	ret, err := s.redisClient.Get(context.Background(), orderBookFullSnapshotKeyPrefix+productId).Bytes()
 	if err != nil {
 		if err == redis.Nil {
 			return nil, nil

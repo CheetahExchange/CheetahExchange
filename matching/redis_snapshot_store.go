@@ -15,8 +15,9 @@
 package matching
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/mutalisk999/gitbitex-service-group/conf"
 	"time"
 )
@@ -51,11 +52,11 @@ func (s *RedisSnapshotStore) Store(snapshot *Snapshot) error {
 		return err
 	}
 
-	return s.redisClient.Set(topicSnapshotPrefix+s.productId, buf, 7*24*time.Hour).Err()
+	return s.redisClient.Set(context.Background(), topicSnapshotPrefix+s.productId, buf, 7*24*time.Hour).Err()
 }
 
 func (s *RedisSnapshotStore) GetLatest() (*Snapshot, error) {
-	ret, err := s.redisClient.Get(topicSnapshotPrefix + s.productId).Bytes()
+	ret, err := s.redisClient.Get(context.Background(), topicSnapshotPrefix+s.productId).Bytes()
 	if err != nil {
 		if err == redis.Nil {
 			return nil, nil
