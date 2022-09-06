@@ -52,12 +52,15 @@ func (s *redisStream) Start() {
 	}
 
 	go func() {
+	symbolOrder:
 		for {
-			ps := redisClient.Subscribe(context.Background(), models.TopicOrder)
-			_, err := ps.Receive(context.Background())
+			ctx := context.Background()
+			ps := redisClient.Subscribe(ctx, models.TopicOrder)
+			_, err := ps.Receive(ctx)
 			if err != nil {
 				log.Error(err)
-				continue
+				_ = ps.Unsubscribe(ctx, models.TopicOrder)
+				continue symbolOrder
 			}
 
 			for {
@@ -66,7 +69,8 @@ func (s *redisStream) Start() {
 					var order models.Order
 					err := json.Unmarshal([]byte(msg.Payload), &order)
 					if err != nil {
-						continue
+						_ = ps.Unsubscribe(ctx, models.TopicOrder)
+						continue symbolOrder
 					}
 
 					s.sub.publish(ChannelOrder.Format(order.ProductId, order.UserId), OrderMessage{
@@ -93,12 +97,14 @@ func (s *redisStream) Start() {
 	}()
 
 	go func() {
+	symbolAccount:
 		for {
-			ps := redisClient.Subscribe(context.Background(), models.TopicAccount)
-			_, err := ps.Receive(context.Background())
+			ctx := context.Background()
+			ps := redisClient.Subscribe(ctx, models.TopicAccount)
+			_, err := ps.Receive(ctx)
 			if err != nil {
 				log.Error(err)
-				continue
+				continue symbolAccount
 			}
 
 			for {
@@ -107,7 +113,7 @@ func (s *redisStream) Start() {
 					var account models.Account
 					err := json.Unmarshal([]byte(msg.Payload), &account)
 					if err != nil {
-						continue
+						continue symbolAccount
 					}
 
 					s.sub.publish(ChannelFunds.FormatWithUserId(account.UserId), FundsMessage{
