@@ -228,7 +228,9 @@ type Trade struct {
 	UpdatedAt    time.Time
 	ProductId    string
 	TakerOrderId int64
+	TakerUserId  int64
 	MakerOrderId int64
+	MakerUserId  int64
 	Price        decimal.Decimal `sql:"type:decimal(32,16);"`
 	Size         decimal.Decimal `sql:"type:decimal(32,16);"`
 	Side         Side

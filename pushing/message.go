@@ -41,6 +41,7 @@ const (
 
 	ChannelTicker = Channel("ticker")
 	ChannelMatch  = Channel("match")
+	ChannelTrade  = Channel("trade")
 	ChannelLevel2 = Channel("level2")
 	ChannelFunds  = Channel("funds")
 	ChannelOrder  = Channel("order")
@@ -161,4 +162,15 @@ type OrderMessage struct {
 	ExecutedValue string `json:"executedValue"`
 	Status        string `json:"status"`
 	Settled       bool   `json:"settled"`
+}
+
+type TradeMessage struct {
+	Type         string `json:"type"`
+	Time         string `json:"time"`
+	ProductId    string `json:"productId"`
+	Price        string `json:"price"`
+	Size         string `json:"size"`
+	MakerOrderId string `json:"makerOrderId"`
+	TakerOrderId string `json:"takerOrderId"`
+	Side         string `json:"side"`
 }

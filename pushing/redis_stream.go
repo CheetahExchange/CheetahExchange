@@ -128,4 +128,54 @@ func (s *redisStream) Start() {
 			}
 		}
 	}()
+
+	go func() {
+	symbolTrade:
+		for {
+			ctx := context.Background()
+			ps := redisClient.Subscribe(ctx, models.TopicTrade)
+			_, err := ps.Receive(ctx)
+			if err != nil {
+				log.Error(err)
+				_ = ps.Unsubscribe(ctx, models.TopicTrade)
+				continue symbolTrade
+			}
+
+			for {
+				select {
+				case msg := <-ps.Channel():
+					var trade models.Trade
+					err := json.Unmarshal([]byte(msg.Payload), &trade)
+					if err != nil {
+						_ = ps.Unsubscribe(ctx, models.TopicTrade)
+						continue symbolTrade
+					}
+
+					// push to maker
+					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.MakerUserId), &TradeMessage{
+						Type:         "trade",
+						Time:         trade.Time.Format(time.RFC3339),
+						ProductId:    trade.ProductId,
+						Price:        trade.Price.String(),
+						Size:         trade.Size.String(),
+						MakerOrderId: utils.I64ToA(trade.MakerOrderId),
+						TakerOrderId: utils.I64ToA(trade.TakerOrderId),
+						Side:         trade.Side.String(),
+					})
+
+					// push to taker
+					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.TakerUserId), &TradeMessage{
+						Type:         "trade",
+						Time:         trade.Time.Format(time.RFC3339),
+						ProductId:    trade.ProductId,
+						Price:        trade.Price.String(),
+						Size:         trade.Size.String(),
+						MakerOrderId: utils.I64ToA(trade.MakerOrderId),
+						TakerOrderId: utils.I64ToA(trade.TakerOrderId),
+						Side:         trade.Side.String(),
+					})
+				}
+			}
+		}
+	}()
 }

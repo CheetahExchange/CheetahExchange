@@ -137,6 +137,25 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 			log.Error(ret.Err())
 		}
 
+	case "g_trade":
+		if e.Action == "delete" {
+			return nil
+		}
+
+		var n = 0
+		if e.Action == "update" {
+			n = 1
+		}
+
+		var v Trade
+		s.parseRow(e, e.Rows[n], &v)
+
+		buf, _ := json.Marshal(v)
+		ret := s.redisClient.Publish(context.Background(), TopicTrade, buf)
+		if ret.Err() != nil {
+			log.Error(ret.Err())
+		}
+
 	case "g_fill":
 		if e.Action == "delete" || e.Action == "update" {
 			return nil

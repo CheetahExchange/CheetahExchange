@@ -44,12 +44,12 @@ func (s *Store) AddTrades(trades []*models.Trade) error {
 	}
 	var valueStrings []string
 	for _, trade := range trades {
-		valueString := fmt.Sprintf("('%v', '%v', %v, %v, %v, %v, '%v', '%v',%v,%v)",
-			time.Now(), trade.ProductId, trade.TakerOrderId, trade.MakerOrderId, trade.Price, trade.Size, trade.Side,
-			trade.Time, trade.LogOffset, trade.LogSeq)
+		valueString := fmt.Sprintf("('%v', '%v', %v, %v, %v, %v, %v, %v, '%v', '%v', %v, %v)",
+			time.Now(), trade.ProductId, trade.TakerOrderId, trade.TakerUserId, trade.MakerOrderId, trade.MakerUserId,
+			trade.Price, trade.Size, trade.Side, trade.Time, trade.LogOffset, trade.LogSeq)
 		valueStrings = append(valueStrings, valueString)
 	}
-	sql := fmt.Sprintf("INSERT IGNORE  INTO g_trade (created_at,product_id,taker_order_id,maker_order_id,"+
+	sql := fmt.Sprintf("INSERT IGNORE  INTO g_trade (created_at,product_id,taker_order_id,taker_user_id,maker_order_id,maker_user_id,"+
 		"price,size,side,time,log_offset,log_seq) VALUES %s", strings.Join(valueStrings, ","))
 	return s.db.Exec(sql).Error
 }

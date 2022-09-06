@@ -278,6 +278,9 @@ func (c *Client) onSub(currencyIds []string, productIds []string, channels []str
 			case ChannelMatch:
 				c.subscribe(ChannelMatch.FormatWithProductId(productId))
 
+			case ChannelTrade:
+				c.subscribe(ChannelTrade.Format(productId, user.Id))
+
 			case ChannelTicker:
 				if c.subscribe(ChannelTicker.FormatWithProductId(productId)) {
 					ticker := getLastTicker(productId)
@@ -358,6 +361,9 @@ func (c *Client) onUnSub(currencyIds []string, productIds []string, channels []s
 
 			case ChannelMatch:
 				c.unsubscribe(ChannelMatch.FormatWithProductId(productId))
+
+			case ChannelTrade:
+				c.unsubscribe(ChannelTrade.Format(productId, user.Id))
 
 			case ChannelTicker:
 				c.unsubscribe(ChannelTicker.FormatWithProductId(productId))

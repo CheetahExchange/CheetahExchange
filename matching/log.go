@@ -103,6 +103,8 @@ type MatchLog struct {
 	TradeId      int64
 	TakerOrderId int64
 	MakerOrderId int64
+	TakerUserId  int64
+	MakerUserId  int64
 	Side         models.Side
 	Price        decimal.Decimal
 	Size         decimal.Decimal
@@ -114,6 +116,8 @@ func newMatchLog(logSeq int64, productId string, tradeSeq int64, takerOrder, mak
 		TradeId:      tradeSeq,
 		TakerOrderId: takerOrder.OrderId,
 		MakerOrderId: makerOrder.OrderId,
+		TakerUserId:  takerOrder.UserId,
+		MakerUserId:  makerOrder.UserId,
 		Side:         makerOrder.Side,
 		Price:        price,
 		Size:         size,

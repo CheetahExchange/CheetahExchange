@@ -71,6 +71,8 @@ func (t *TradeMaker) OnMatchLog(log *matching.MatchLog, offset int64) {
 		ProductId:    log.ProductId,
 		TakerOrderId: log.TakerOrderId,
 		MakerOrderId: log.MakerOrderId,
+		TakerUserId:  log.TakerUserId,
+		MakerUserId:  log.MakerUserId,
 		Price:        log.Price,
 		Size:         log.Size,
 		Side:         log.Side,
