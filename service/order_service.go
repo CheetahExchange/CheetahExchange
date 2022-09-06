@@ -175,6 +175,7 @@ func ExecuteFill(orderId int64) error {
 				} else {
 					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
 				}
+				fill.Fee = fee
 				order.FillFees.Add(fee)
 
 				// 买单，incr base
@@ -202,6 +203,7 @@ func ExecuteFill(orderId int64) error {
 				} else {
 					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
 				}
+				fill.Fee = fee
 				order.FillFees.Add(fee)
 
 				// 卖单，decr base
