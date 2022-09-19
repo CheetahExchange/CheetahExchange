@@ -30,6 +30,9 @@ const (
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
+
+	writeChannelSize    = 256
+	l2ChangeChannelSize = 512
 )
 
 var id int64
@@ -49,8 +52,8 @@ func NewClient(conn *websocket.Conn, sub *subscription) *Client {
 	return &Client{
 		id:         atomic.AddInt64(&id, 1),
 		conn:       conn,
-		writeCh:    make(chan interface{}, 256),
-		l2ChangeCh: make(chan *Level2Change, 512),
+		writeCh:    make(chan interface{}, writeChannelSize),
+		l2ChangeCh: make(chan *Level2Change, l2ChangeChannelSize),
 		sub:        sub,
 		channels:   map[string]struct{}{},
 	}

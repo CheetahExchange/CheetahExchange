@@ -71,6 +71,8 @@ func (s *subscription) publish(channel string, msg interface{}) {
 	}
 
 	for _, c := range s.subscribers[channel] {
-		c.writeCh <- msg
+		if len(c.writeCh) < writeChannelSize {
+			c.writeCh <- msg
+		}
 	}
 }
