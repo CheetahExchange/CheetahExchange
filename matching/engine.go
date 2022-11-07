@@ -133,20 +133,30 @@ func (e *Engine) runApplier() {
 			} else {
 				//logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 
-				if offsetOrder.Order.TimeInForce == "IOC" {
+				if offsetOrder.Order.TimeInForce == models.ImmediateOrCancel {
+					// IOC
 					logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 					// cancel the rest size
 					iocLogs := e.OrderBook.CancelOrder(offsetOrder.Order)
 					if len(iocLogs) != 0 {
 						logs = append(logs, iocLogs...)
 					}
-				} else if offsetOrder.Order.TimeInForce == "GTX" {
-					if e.OrderBook.IsOrderPending(offsetOrder.Order) {
+				} else if offsetOrder.Order.TimeInForce == models.GoodTillCrossing {
+					// GTX
+					if e.OrderBook.IsOrderWillPending(offsetOrder.Order) {
 						logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 					} else {
 						logs = e.OrderBook.CancelOrder(offsetOrder.Order)
 					}
-				} else if offsetOrder.Order.TimeInForce == "GTC" {
+				} else if offsetOrder.Order.TimeInForce == models.FillOrKill {
+					// FOK
+					if e.OrderBook.IsOrderWillFullDeal(offsetOrder.Order) {
+						logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
+					} else {
+						logs = e.OrderBook.CancelOrder(offsetOrder.Order)
+					}
+				} else if offsetOrder.Order.TimeInForce == models.GoodTillCanceled {
+					// GTC
 					logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 				}
 			}

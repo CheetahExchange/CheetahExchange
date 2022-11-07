@@ -82,6 +82,7 @@ func NewTimeInForceTypeFromString(s string) (*TimeInForceType, error) {
 	case GoodTillCanceled:
 	case ImmediateOrCancel:
 	case GoodTillCrossing:
+	case FillOrKill:
 	default:
 		return nil, fmt.Errorf("invalid timeInForce: %v", s)
 	}
@@ -107,6 +108,7 @@ const (
 	GoodTillCanceled  = TimeInForceType("GTC")
 	ImmediateOrCancel = TimeInForceType("IOC")
 	GoodTillCrossing  = TimeInForceType("GTX")
+	FillOrKill        = TimeInForceType("FOK")
 
 	SideBuy  = Side("buy")
 	SideSell = Side("sell")

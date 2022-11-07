@@ -48,7 +48,7 @@ type placeOrderRequest struct {
 	Price       float64 `json:"price"`
 	Side        string  `json:"side"`
 	Type        string  `json:"type"`        // [optional] limit or market (default is limit)
-	TimeInForce string  `json:"timeInForce"` // [optional] GTC, IOC, or GTX (default is GTC)
+	TimeInForce string  `json:"timeInForce"` // [optional] GTC, IOC, FOK or GTX (default is GTC)
 }
 
 type orderVo struct {
