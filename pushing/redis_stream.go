@@ -152,7 +152,7 @@ func (s *redisStream) Start() {
 					}
 
 					// push to maker
-					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.MakerUserId), &TradeMessage{
+					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.MakerUserId), TradeMessage{
 						Type:         "trade",
 						Time:         trade.Time.Format(time.RFC3339),
 						ProductId:    trade.ProductId,
@@ -164,7 +164,7 @@ func (s *redisStream) Start() {
 					})
 
 					// push to taker
-					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.TakerUserId), &TradeMessage{
+					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.TakerUserId), TradeMessage{
 						Type:         "trade",
 						Time:         trade.Time.Format(time.RFC3339),
 						ProductId:    trade.ProductId,
