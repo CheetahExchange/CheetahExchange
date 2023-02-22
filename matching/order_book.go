@@ -329,6 +329,14 @@ func (o *orderBook) CancelOrder(order *models.Order) (logs []Log) {
 	return append(logs, doneLog)
 }
 
+func (o *orderBook) NullifyOrder(order *models.Order) (logs []Log) {
+	_ = o.orderIdWindow.put(order.Id)
+
+	bookOrder := newBookOrder(order)
+	doneLog := newDoneLog(o.nextLogSeq(), o.product.Id, bookOrder, order.Size, models.DoneReasonCancelled)
+	return append(logs, doneLog)
+}
+
 func (o *orderBook) Snapshot() orderBookSnapshot {
 	snapshot := orderBookSnapshot{
 		Orders:        make([]BookOrder, len(o.depths[models.SideSell].orders)+len(o.depths[models.SideBuy].orders)),

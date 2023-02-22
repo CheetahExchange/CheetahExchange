@@ -146,14 +146,14 @@ func (e *Engine) runApplier() {
 					if e.OrderBook.IsOrderWillPending(offsetOrder.Order) {
 						logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 					} else {
-						logs = e.OrderBook.CancelOrder(offsetOrder.Order)
+						logs = e.OrderBook.NullifyOrder(offsetOrder.Order)
 					}
 				} else if offsetOrder.Order.TimeInForce == models.FillOrKill {
 					// FOK
 					if e.OrderBook.IsOrderWillFullDeal(offsetOrder.Order) {
 						logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 					} else {
-						logs = e.OrderBook.CancelOrder(offsetOrder.Order)
+						logs = e.OrderBook.NullifyOrder(offsetOrder.Order)
 					}
 				} else if offsetOrder.Order.TimeInForce == models.GoodTillCanceled {
 					// GTC
