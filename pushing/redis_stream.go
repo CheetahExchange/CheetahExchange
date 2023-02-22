@@ -73,7 +73,7 @@ func (s *redisStream) Start() {
 						continue symbolOrder
 					}
 
-					s.sub.publish(ChannelOrder.Format(order.ProductId, order.UserId), OrderMessage{
+					s.sub.publish(ChannelOrder.Format(order.ProductId, order.UserId), &OrderMessage{
 						UserId:        order.UserId,
 						Type:          "order",
 						Sequence:      0,
@@ -116,7 +116,7 @@ func (s *redisStream) Start() {
 						continue symbolAccount
 					}
 
-					s.sub.publish(ChannelFunds.FormatWithUserId(account.UserId), FundsMessage{
+					s.sub.publish(ChannelFunds.FormatWithUserId(account.UserId), &FundsMessage{
 						Type:      "funds",
 						Sequence:  0,
 						UserId:    utils.I64ToA(account.UserId),
@@ -152,7 +152,7 @@ func (s *redisStream) Start() {
 					}
 
 					// push to maker
-					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.MakerUserId), TradeMessage{
+					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.MakerUserId), &TradeMessage{
 						Type:         "trade",
 						Time:         trade.Time.Format(time.RFC3339),
 						ProductId:    trade.ProductId,
@@ -164,7 +164,7 @@ func (s *redisStream) Start() {
 					})
 
 					// push to taker
-					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.TakerUserId), TradeMessage{
+					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.TakerUserId), &TradeMessage{
 						Type:         "trade",
 						Time:         trade.Time.Format(time.RFC3339),
 						ProductId:    trade.ProductId,
