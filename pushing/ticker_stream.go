@@ -25,7 +25,14 @@ import (
 	"time"
 )
 
-const intervalSec = 3
+const (
+	//intervalSec = 3
+	intervalSec = 1
+)
+
+var (
+	lastTickers = sync.Map{}
+)
 
 type TickerStream struct {
 	productId       string
@@ -62,7 +69,7 @@ func (s *TickerStream) OnDoneLog(log *matching.DoneLog, offset int64) {
 }
 
 func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
-	if time.Now().Unix()-s.lastTickerTime > intervalSec {
+	if (time.Now().Unix() - s.lastTickerTime) > intervalSec {
 		ticker, err := s.newTickerMessage(log)
 		if err != nil {
 			logger.Error(err)
@@ -74,10 +81,24 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 		lastTickers.Store(log.ProductId, ticker)
 		s.sub.publish(ChannelTicker.FormatWithProductId(log.ProductId), ticker)
 		s.lastTickerTime = time.Now().Unix()
+	} else {
+		ticker := getLastTicker(log.ProductId)
+		if ticker == nil {
+			return
+		}
+		ticker.TradeId = log.TradeId
+		ticker.Sequence = log.Sequence
+		ticker.Time = log.Time.Format(time.RFC3339)
+		ticker.ProductId = log.ProductId
+		ticker.Price = log.Price.String()
+		ticker.Side = log.Side.String()
+		ticker.LastSize = log.Size.String()
+		lastTickers.Store(log.ProductId, ticker)
+		s.sub.publish(ChannelTicker.FormatWithProductId(log.ProductId), ticker)
 	}
 
 	// publish candles info one second in the future
-	if time.Now().Unix()-s.lastCandlesTime > 1 {
+	if (time.Now().Unix() - s.lastCandlesTime) > intervalSec {
 		go func(delaySec int64, productId string) {
 			select {
 			case <-time.After(time.Duration(delaySec) * time.Second):
@@ -150,6 +171,7 @@ func mergeTicks(ticks []*models.Tick) *models.Tick {
 		if t == nil {
 			t = tick
 		} else {
+			t.Open = tick.Open
 			t.Close = tick.Close
 			t.Low = decimal.Min(t.Low, tick.Low)
 			t.High = decimal.Max(t.High, tick.High)
@@ -158,8 +180,6 @@ func mergeTicks(ticks []*models.Tick) *models.Tick {
 	}
 	return t
 }
-
-var lastTickers = sync.Map{}
 
 func getLastTicker(productId string) *TickerMessage {
 	ticker, found := lastTickers.Load(productId)
