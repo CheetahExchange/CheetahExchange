@@ -89,13 +89,13 @@ func HoldBalance(db models.Store, userId int64, currency string, size decimal.De
 		return errors.New("size less than 0")
 	}
 
-	enough, err := HasEnoughBalance(userId, currency, size)
-	if err != nil {
-		return err
-	}
-	if !enough {
-		return errors.New(fmt.Sprintf("no enough %v : request=%v", currency, size))
-	}
+	//enough, err := HasEnoughBalance(userId, currency, size)
+	//if err != nil {
+	//	return err
+	//}
+	//if !enough {
+	//	return errors.New(fmt.Sprintf("no enough %v : request=%v", currency, size))
+	//}
 
 	account, err := db.GetAccountForUpdate(userId, currency)
 	if err != nil {
@@ -103,6 +103,11 @@ func HoldBalance(db models.Store, userId int64, currency string, size decimal.De
 	}
 	if account == nil {
 		return errors.New("no enough")
+	}
+
+	enough := account.Available.GreaterThanOrEqual(size)
+	if !enough {
+		return errors.New(fmt.Sprintf("no enough %v : request=%v", currency, size))
 	}
 
 	account.Available = account.Available.Sub(size)
