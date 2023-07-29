@@ -1,6 +1,6 @@
 # gitbitex-service-group
 
-Forked from [gitbitex-spot](https://github.com/mutalisk999/gitbitex-service-group)
+Forked from [gitbitex-spot](https://github.com/gitbitex/gitbitex-spot)
 
 ## Install Dependent Infrastructures
 * MySql (make sure **BINLOG[ROW format]** enabled)
