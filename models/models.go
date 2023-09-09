@@ -62,6 +62,7 @@ func NewOrderStatusFromString(s string) (*OrderStatus, error) {
 	case OrderStatusOpen:
 	case OrderStatusCancelling:
 	case OrderStatusCancelled:
+	case OrderStatusPartial:
 	case OrderStatusFilled:
 	default:
 		return nil, fmt.Errorf("invalid status: %v", s)
@@ -119,8 +120,10 @@ const (
 	OrderStatusOpen = OrderStatus("open")
 	// 中间状态，请求取消订单
 	OrderStatusCancelling = OrderStatus("cancelling")
-	// 订单已经被取消，部分成交的订单也是cancelled
+	// 完整订单被取消
 	OrderStatusCancelled = OrderStatus("cancelled")
+	// 部分成交的订单被取消
+	OrderStatusPartial = OrderStatus("partial")
 	// 订单完全成交
 	OrderStatusFilled = OrderStatus("filled")
 

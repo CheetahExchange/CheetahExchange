@@ -62,7 +62,7 @@ func NewFillExecutor() *FillExecutor {
 						log.Warnf("order not found: %v", fill.OrderId)
 						continue
 					}
-					if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusFilled {
+					if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusFilled || order.Status == models.OrderStatusPartial {
 						settledOrderCache.Add(order.Id, struct{}{})
 						continue
 					}
