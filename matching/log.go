@@ -59,7 +59,7 @@ type OpenLog struct {
 	RemainingSize decimal.Decimal
 	Price         decimal.Decimal
 	Side          models.Side
-	TimeInForce   string
+	TimeInForce   models.TimeInForceType
 }
 
 func newOpenLog(logSeq int64, productId string, takerOrder *BookOrder) *OpenLog {
@@ -86,7 +86,7 @@ type DoneLog struct {
 	RemainingSize decimal.Decimal
 	Reason        models.DoneReason
 	Side          models.Side
-	TimeInForce   string
+	TimeInForce   models.TimeInForceType
 }
 
 func newDoneLog(logSeq int64, productId string, order *BookOrder, remainingSize decimal.Decimal, reason models.DoneReason) *DoneLog {
@@ -116,8 +116,8 @@ type MatchLog struct {
 	Side             models.Side
 	Price            decimal.Decimal
 	Size             decimal.Decimal
-	TakerTimeInForce string
-	MakerTimeInForce string
+	TakerTimeInForce models.TimeInForceType
+	MakerTimeInForce models.TimeInForceType
 }
 
 func newMatchLog(logSeq int64, productId string, tradeSeq int64, takerOrder, makerOrder *BookOrder, price, size decimal.Decimal) *MatchLog {

@@ -422,7 +422,7 @@ type BookOrder struct {
 	Price       decimal.Decimal
 	Side        models.Side
 	Type        models.OrderType
-	TimeInForce string
+	TimeInForce models.TimeInForceType
 }
 
 func newBookOrder(order *models.Order) *BookOrder {
@@ -434,7 +434,7 @@ func newBookOrder(order *models.Order) *BookOrder {
 		Price:       order.Price,
 		Side:        order.Side,
 		Type:        order.Type,
-		TimeInForce: order.TimeInForce.String(),
+		TimeInForce: order.TimeInForce,
 	}
 }
 
