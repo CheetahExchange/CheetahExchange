@@ -59,7 +59,7 @@ func (t *FillMaker) Start() {
 
 func (t *FillMaker) OnMatchLog(log *matching.MatchLog, offset int64) {
 	t.fillCh <- &models.Fill{
-		TradeId:    log.TradeId,
+		TradeSeq:   log.TradeSeq,
 		MessageSeq: log.Sequence,
 		OrderId:    log.TakerOrderId,
 		ProductId:  log.ProductId,
@@ -71,7 +71,7 @@ func (t *FillMaker) OnMatchLog(log *matching.MatchLog, offset int64) {
 		LogSeq:     log.Sequence,
 	}
 	t.fillCh <- &models.Fill{
-		TradeId:    log.TradeId,
+		TradeSeq:   log.TradeSeq,
 		MessageSeq: log.Sequence,
 		OrderId:    log.MakerOrderId,
 		ProductId:  log.ProductId,

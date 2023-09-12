@@ -86,7 +86,7 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 		if ticker == nil {
 			return
 		}
-		ticker.TradeId = log.TradeId
+		ticker.TradeSeq = log.TradeSeq
 		ticker.Sequence = log.Sequence
 		ticker.Time = log.Time.Format(time.RFC3339)
 		ticker.ProductId = log.ProductId
@@ -137,7 +137,7 @@ func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage,
 
 	return &TickerMessage{
 		Type:      "ticker",
-		TradeId:   log.TradeId,
+		TradeSeq:  log.TradeSeq,
 		Sequence:  log.Sequence,
 		Time:      log.Time.Format(time.RFC3339),
 		ProductId: log.ProductId,

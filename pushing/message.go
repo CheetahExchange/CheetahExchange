@@ -97,7 +97,7 @@ type Level2Change struct {
 
 type MatchMessage struct {
 	Type         string `json:"type"`
-	TradeId      int64  `json:"tradeId"`
+	TradeSeq     int64  `json:"tradeSeq"`
 	Sequence     int64  `json:"sequence"`
 	Time         string `json:"time"`
 	ProductId    string `json:"productId"`
@@ -110,7 +110,7 @@ type MatchMessage struct {
 
 type TickerMessage struct {
 	Type      string `json:"type"`
-	TradeId   int64  `json:"tradeId"`
+	TradeSeq  int64  `json:"tradeSeq"`
 	Sequence  int64  `json:"sequence"`
 	Time      string `json:"time"`
 	ProductId string `json:"productId"`

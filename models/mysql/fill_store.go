@@ -19,6 +19,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/mutalisk999/gitbitex-service-group/models"
 	"strings"
+	"time"
 )
 
 func (s *Store) GetLastFillByProductId(productId string) (*models.Fill, error) {
@@ -57,12 +58,12 @@ func (s *Store) AddFills(fills []*models.Fill) error {
 	}
 	var valueStrings []string
 	for _, fill := range fills {
-		valueString := fmt.Sprintf("(NOW(), '%v', %v, %v, %v, %v,%v, %v,'%v',%v,%v,'%v',%v,'%v',%v,%v)",
-			fill.ProductId, fill.TradeId, fill.OrderId, fill.MessageSeq, fill.Size, fill.Price, fill.Funds,
+		valueString := fmt.Sprintf("('%v', '%v', %v, %v, %v, %v, %v, %v,'%v', %v, %v, '%v', %v, '%v', %v, %v)",
+			time.Now(), fill.ProductId, fill.TradeSeq, fill.OrderId, fill.MessageSeq, fill.Size, fill.Price, fill.Funds,
 			fill.Liquidity, fill.Fee, fill.Settled, fill.Side, fill.Done, fill.DoneReason, fill.LogOffset, fill.LogSeq)
 		valueStrings = append(valueStrings, valueString)
 	}
-	sql := fmt.Sprintf("INSERT IGNORE INTO g_fill (created_at,product_id,trade_id,order_id, message_seq,size,"+
+	sql := fmt.Sprintf("INSERT IGNORE INTO g_fill (created_at,product_id,trade_seq,order_id, message_seq,size,"+
 		"price,funds,liquidity,fee,settled,side,done,done_reason,log_offset,log_seq) VALUES %s",
 		strings.Join(valueStrings, ","))
 	return s.db.Exec(sql).Error

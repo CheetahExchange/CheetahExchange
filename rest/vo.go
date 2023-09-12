@@ -85,11 +85,12 @@ type ProductVo struct {
 }
 
 type tradeVo struct {
-	Time    string `json:"time"`
-	TradeId int64  `json:"tradeId"`
-	Price   string `json:"price"`
-	Size    string `json:"size"`
-	Side    string `json:"side"`
+	Time     string `json:"time"`
+	Id       string `json:"id"`
+	TradeSeq string `json:"tradeSeq"`
+	Price    string `json:"price"`
+	Size     string `json:"size"`
+	Side     string `json:"side"`
 }
 
 type orderBookVo struct {
@@ -177,11 +178,12 @@ func newTransactionVo() *transactionVo {
 
 func newTradeVo(trade *models.Trade) *tradeVo {
 	return &tradeVo{
-		Time:    trade.Time.Format(time.RFC3339),
-		TradeId: trade.Id,
-		Price:   trade.Price.String(),
-		Size:    trade.Size.String(),
-		Side:    trade.Side.String(),
+		Time:     trade.Time.Format(time.RFC3339),
+		Id:       utils.I64ToA(trade.Id),
+		TradeSeq: utils.I64ToA(trade.TradeSeq),
+		Price:    trade.Price.String(),
+		Size:     trade.Size.String(),
+		Side:     trade.Side.String(),
 	}
 }
 

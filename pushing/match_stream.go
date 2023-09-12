@@ -60,7 +60,7 @@ func (s *MatchStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 	// push match
 	s.sub.publish(ChannelMatch.FormatWithProductId(log.ProductId), &MatchMessage{
 		Type:         "match",
-		TradeId:      log.TradeId,
+		TradeSeq:     log.TradeSeq,
 		Sequence:     log.Sequence,
 		Time:         log.Time.Format(time.RFC3339),
 		ProductId:    log.ProductId,

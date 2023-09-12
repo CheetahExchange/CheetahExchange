@@ -19,6 +19,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/mutalisk999/gitbitex-service-group/models"
 	"strings"
+	"time"
 )
 
 func (s *Store) GetTicksByProductId(productId string, granularity int64, limit int) ([]*models.Tick, error) {
@@ -55,8 +56,8 @@ func (s *Store) AddTicks(ticks []*models.Tick) error {
 	}
 	var valueStrings []string
 	for _, tick := range ticks {
-		valueString := fmt.Sprintf("(NOW(),'%v', %v, %v, %v, %v, %v, %v, %v,%v,%v)",
-			tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
+		valueString := fmt.Sprintf("'%v', '%v', %v, %v, %v, %v, %v, %v, %v, %v, %v)",
+			time.Now(), tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
 			tick.Volume, tick.LogOffset, tick.LogSeq)
 		valueStrings = append(valueStrings, valueString)
 	}

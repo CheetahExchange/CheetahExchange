@@ -210,7 +210,7 @@ type Fill struct {
 	Id         int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	TradeId    int64
+	TradeSeq   int64
 	OrderId    int64 `gorm:"unique_index:o_m"`
 	MessageSeq int64 `gorm:"unique_index:o_m"`
 	ProductId  string
@@ -232,6 +232,7 @@ type Trade struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	ProductId    string
+	TradeSeq     int64
 	TakerOrderId int64
 	TakerUserId  int64
 	MakerOrderId int64
