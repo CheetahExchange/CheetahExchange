@@ -143,14 +143,14 @@ func (e *Engine) runApplier() {
 					}
 				} else if offsetOrder.Order.TimeInForce == models.GoodTillCrossing {
 					// GTX
-					if e.OrderBook.IsOrderWillPending(offsetOrder.Order) {
+					if e.OrderBook.IsOrderWillNotMatch(offsetOrder.Order) {
 						logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 					} else {
 						logs = e.OrderBook.NullifyOrder(offsetOrder.Order)
 					}
 				} else if offsetOrder.Order.TimeInForce == models.FillOrKill {
 					// FOK
-					if e.OrderBook.IsOrderWillFullDeal(offsetOrder.Order) {
+					if e.OrderBook.IsOrderWillFullMatch(offsetOrder.Order) {
 						logs = e.OrderBook.ApplyOrder(offsetOrder.Order)
 					} else {
 						logs = e.OrderBook.NullifyOrder(offsetOrder.Order)

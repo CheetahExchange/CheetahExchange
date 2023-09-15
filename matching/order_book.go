@@ -86,7 +86,7 @@ func NewOrderBook(product *models.Product) *orderBook {
 	return orderBook
 }
 
-func (o *orderBook) IsOrderWillPending(order *models.Order) bool {
+func (o *orderBook) IsOrderWillNotMatch(order *models.Order) bool {
 	takerOrder := newBookOrder(order)
 
 	// If it's a Market-Buy order, set price to infinite high, and if it's market-sell,
@@ -126,7 +126,7 @@ func (o *orderBook) IsOrderWillPending(order *models.Order) bool {
 	return false
 }
 
-func (o *orderBook) IsOrderWillFullDeal(order *models.Order) bool {
+func (o *orderBook) IsOrderWillFullMatch(order *models.Order) bool {
 	takerOrder := newBookOrder(order)
 
 	// If it's a Market-Buy order, set price to infinite high, and if it's market-sell,
