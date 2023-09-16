@@ -172,18 +172,14 @@ func (o *orderBook) IsOrderWillFullMatch(order *models.Order) bool {
 			}
 
 			// calculate the size of taker at current price
-			//takerSize := takerOrder.Funds.Div(price).Truncate(o.product.BaseScale)
-			takerSize := takerOrder.Funds.Div(price).Truncate(0)
+			takerSize := takerOrder.Funds.Div(price).Truncate(o.product.BaseScale)
 			if takerSize.IsZero() {
 				break
 			}
 
 			// Take the minimum size of taker and maker as trade size
 			size = decimal.Min(takerSize, makerOrder.Size)
-
-			// div 10^18
-			pow := decimal.NewFromInt(10).Pow(decimal.NewFromInt(18))
-			funds := size.Mul(price).Div(pow).Floor()
+			funds := size.Mul(price)
 
 			// adjust the funds of taker order
 			takerOrder.Funds = takerOrder.Funds.Sub(funds)
