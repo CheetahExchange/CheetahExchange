@@ -127,14 +127,22 @@ func (c *Client) runWriter() {
 			}
 			err = c.conn.WriteMessage(websocket.TextMessage, buf)
 			if err != nil {
+				_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				c.close()
 				return
 			}
 
 		case <-ticker.C:
-			_ = c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			err := c.conn.WriteMessage(websocket.PingMessage, nil)
+			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err != nil {
+				_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				c.close()
+				return
+			}
+
+			err = c.conn.WriteMessage(websocket.PingMessage, nil)
+			if err != nil {
+				_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				c.close()
 				return
 			}
