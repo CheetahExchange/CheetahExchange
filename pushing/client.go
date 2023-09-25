@@ -65,6 +65,10 @@ func (c *Client) startServe() {
 }
 
 func (c *Client) runReader() {
+	defer func() {
+		_ = c.conn.Close()
+	}()
+
 	c.conn.SetReadLimit(maxMessageSize)
 	err := c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	if err != nil {
