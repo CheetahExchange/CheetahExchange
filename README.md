@@ -1,4 +1,4 @@
-# gitbitex-service-group
+# CheetahExchange
 
 Forked from [gitbitex-spot](https://github.com/gitbitex/gitbitex-spot)
 
@@ -43,16 +43,7 @@ sudo apt-get install redis-server
 ```
 
 
-## Install Compiler/Linker
-* Ubuntu
-```
-sudo apt-get update && sudo apt-get install build-essential
-```
-
-* Win64
-[MingW64 (for Win64)](https://www.mingw-w64.org/)
-
-## Install Golang
+## Install Golang Compiler
 
 * [Golang](https://go.dev/doc/install)
 
@@ -61,14 +52,14 @@ sudo apt-get update && sudo apt-get install build-essential
 
 * Clone Repo
 ```
-git clone https://github.com/mutalisk999/gitbitex-service-group
-cd gitbitex-service-group
+git clone https://github.com/CheetahExchange/CheetahExchange
+cd CheetahExchange
 ```
 
 * Build 
 ```
-make legacy_clean
-make legacy
+make clean
+make
 ```
 
 ## Run Server
@@ -79,5 +70,7 @@ cp conf_example.json conf.json
 
 * Run
 ```
-./gitbitex-spot
+./spot-core
+./spot-rest
+./spot-pushing
 ```

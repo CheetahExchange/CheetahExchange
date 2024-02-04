@@ -1,9 +1,9 @@
 package worker
 
 import (
-	"github.com/mutalisk999/gitbitex-service-group/conf"
-	"github.com/mutalisk999/gitbitex-service-group/matching"
-	"github.com/mutalisk999/gitbitex-service-group/service"
+	"github.com/CheetahExchange/CheetahExchange/conf"
+	"github.com/CheetahExchange/CheetahExchange/matching"
+	"github.com/CheetahExchange/CheetahExchange/service"
 	"github.com/siddontang/go-log/log"
 	"sync"
 	"time"

@@ -1,6 +1,6 @@
-module github.com/mutalisk999/gitbitex-service-group
+module github.com/CheetahExchange/CheetahExchange
 
-go 1.12
+go 1.16
 
 require (
 	github.com/coreos/bbolt v1.3.3 // indirect

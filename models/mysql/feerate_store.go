@@ -1,8 +1,8 @@
 package mysql
 
 import (
+	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/jinzhu/gorm"
-	"github.com/mutalisk999/gitbitex-service-group/models"
 )
 
 func (s *Store) GetFeeRateByUserLevel(userLevel string) (*models.FeeRate, error) {
