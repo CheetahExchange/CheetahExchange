@@ -24,7 +24,7 @@ func NewFillExecutor() *FillExecutor {
 		workerChs: [fillWorkerNum]chan *models.Fill{},
 	}
 
-	// 初始化和fillWorkersNum一样数量的routine，每个routine负责一个chan
+	// 初始化和fillWorkerNum一样数量的routine，每个routine负责一个chan
 	for i := 0; i < fillWorkerNum; i++ {
 		f.workerChs[i] = make(chan *models.Fill, 512)
 		go func(idx int) {

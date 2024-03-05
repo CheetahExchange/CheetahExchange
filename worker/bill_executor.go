@@ -11,17 +11,19 @@ import (
 	"time"
 )
 
+const billWorkerNum = 10
+
 type BillExecutor struct {
-	workerChs [fillWorkerNum]chan *models.Bill
+	workerChs [billWorkerNum]chan *models.Bill
 }
 
 func NewBillExecutor() *BillExecutor {
 	f := &BillExecutor{
-		workerChs: [fillWorkerNum]chan *models.Bill{},
+		workerChs: [billWorkerNum]chan *models.Bill{},
 	}
 
-	// 初始化和fillWorkersNum一样数量的routine，每个routine负责一个chan
-	for i := 0; i < fillWorkerNum; i++ {
+	// 初始化和billWorkerNum一样数量的routine，每个routine负责一个chan
+	for i := 0; i < billWorkerNum; i++ {
 		f.workerChs[i] = make(chan *models.Bill, 256)
 		go func(idx int) {
 			for {
@@ -66,7 +68,7 @@ func (s *BillExecutor) runMqListener() {
 		}
 
 		// 按userId进行sharding
-		s.workerChs[bill.UserId%fillWorkerNum] <- &bill
+		s.workerChs[bill.UserId%billWorkerNum] <- &bill
 	}
 }
 
@@ -81,7 +83,7 @@ func (s *BillExecutor) runInspector() {
 			}
 
 			for _, bill := range bills {
-				s.workerChs[bill.UserId%fillWorkerNum] <- bill
+				s.workerChs[bill.UserId%billWorkerNum] <- bill
 			}
 		}
 	}

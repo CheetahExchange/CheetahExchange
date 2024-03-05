@@ -28,12 +28,12 @@ func StartEngine() {
 					matchEngine := NewEngine(product, orderReader, logStore, snapshotStore)
 					matchEngine.Start()
 					productsSupported.Store(product.Id, true)
-					log.Infof("start match engine for %s ok", product.Id)
+					log.Infof("start matching engine for %s ok", product.Id)
 				}
 			}
 			time.Sleep(5 * time.Second)
 		}
 	}()
 
-	log.Info("match engine ok")
+	log.Info("matching engine ok")
 }

@@ -15,6 +15,28 @@ func ExecuteBill(userId int64, currency string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	// 获取所有未入账的bill
+	bills, err := tx.GetUnsettledBillsByUserId(userId, currency)
+	if err != nil {
+		return err
+	}
+	if len(bills) == 0 {
+		return nil
+	}
+
+	availableSum, holdSum := decimal.Zero, decimal.Zero
+	for _, bill := range bills {
+		availableSum = availableSum.Add(bill.Available)
+		holdSum = holdSum.Add(bill.Hold)
+
+		bill.Settled = true
+
+		err = tx.UpdateBill(bill)
+		if err != nil {
+			return err
+		}
+	}
+
 	// 锁定用户资金记录
 	account, err := tx.GetAccountForUpdate(userId, currency)
 	if err != nil {
@@ -36,26 +58,8 @@ func ExecuteBill(userId int64, currency string) error {
 		}
 	}
 
-	// 获取所有未入账的bill
-	bills, err := tx.GetUnsettledBillsByUserId(userId, currency)
-	if err != nil {
-		return err
-	}
-	if len(bills) == 0 {
-		return nil
-	}
-
-	for _, bill := range bills {
-		account.Available = account.Available.Add(bill.Available)
-		account.Hold = account.Hold.Add(bill.Hold)
-
-		bill.Settled = true
-
-		err = tx.UpdateBill(bill)
-		if err != nil {
-			return err
-		}
-	}
+	account.Available = account.Available.Add(availableSum)
+	account.Hold = account.Hold.Add(holdSum)
 
 	err = tx.UpdateAccount(account)
 	if err != nil {
