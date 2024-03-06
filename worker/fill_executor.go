@@ -15,7 +15,7 @@ import (
 const fillWorkerNum = 10
 
 type FillExecutor struct {
-	// 用于接收sharding之后的fill，按照orderId进行sharding，可以降低锁竞争，
+	// Used to receive the fill after sharding, and sharding by orderId can avoid lock contention.
 	workerChs [fillWorkerNum]chan *models.Fill
 }
 
@@ -24,7 +24,7 @@ func NewFillExecutor() *FillExecutor {
 		workerChs: [fillWorkerNum]chan *models.Fill{},
 	}
 
-	// 初始化和fillWorkerNum一样数量的routine，每个routine负责一个chan
+	// Initialize as many routines as fillWorkerNum, each responsible for one chan.
 	for i := 0; i < fillWorkerNum; i++ {
 		f.workerChs[i] = make(chan *models.Fill, 512)
 		go func(idx int) {
@@ -48,7 +48,10 @@ func NewFillExecutor() *FillExecutor {
 						log.Warnf("order not found: %v", fill.OrderId)
 						continue
 					}
-					if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusFilled || order.Status == models.OrderStatusPartial {
+
+					// completed order
+					if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusFilled ||
+						order.Status == models.OrderStatusPartial {
 						settledOrderCache.Add(order.Id, struct{}{})
 						continue
 					}
@@ -70,13 +73,13 @@ func (s *FillExecutor) Start() {
 	go s.runMqListener()
 }
 
-// 监听消息队列通知
+// Listening for message queue notifications
 func (s *FillExecutor) runMqListener() {
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     gbeConfig.Redis.Addr,
-		Password: gbeConfig.Redis.Password,
+		Addr:     spotConfig.Redis.Addr,
+		Password: spotConfig.Redis.Password,
 		DB:       0,
 	})
 
@@ -94,12 +97,12 @@ func (s *FillExecutor) runMqListener() {
 			continue
 		}
 
-		// 按照orderId取模进行sharding，相同的orderId会分配到固定的chan
+		// Sharding is performed by taking a pattern from the orderId, the same orderId will be assigned to the same chan
 		s.workerChs[fill.OrderId%fillWorkerNum] <- &fill
 	}
 }
 
-// 定时轮询数据库
+// Timed Polling Database
 func (s *FillExecutor) runInspector() {
 	for {
 		select {

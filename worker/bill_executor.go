@@ -22,7 +22,7 @@ func NewBillExecutor() *BillExecutor {
 		workerChs: [billWorkerNum]chan *models.Bill{},
 	}
 
-	// 初始化和billWorkerNum一样数量的routine，每个routine负责一个chan
+	// Initialize the same number of routines as billWorkerNum, each responsible for one chan.
 	for i := 0; i < billWorkerNum; i++ {
 		f.workerChs[i] = make(chan *models.Bill, 256)
 		go func(idx int) {
@@ -46,11 +46,11 @@ func (s *BillExecutor) Start() {
 }
 
 func (s *BillExecutor) runMqListener() {
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     gbeConfig.Redis.Addr,
-		Password: gbeConfig.Redis.Password,
+		Addr:     spotConfig.Redis.Addr,
+		Password: spotConfig.Redis.Password,
 		DB:       0,
 	})
 
@@ -67,7 +67,7 @@ func (s *BillExecutor) runMqListener() {
 			panic(ret.Err())
 		}
 
-		// 按userId进行sharding
+		// Sharding by userId
 		s.workerChs[bill.UserId%billWorkerNum] <- &bill
 	}
 }

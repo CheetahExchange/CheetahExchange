@@ -74,11 +74,11 @@ func IntegerInterfaceToUint64(i interface{}) uint64 {
 }
 
 func NewBinLogStream() *BinLogStream {
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     gbeConfig.Redis.Addr,
-		Password: gbeConfig.Redis.Password,
+		Addr:     spotConfig.Redis.Addr,
+		Password: spotConfig.Redis.Password,
 		DB:       0,
 	})
 
@@ -222,16 +222,16 @@ func (s *BinLogStream) getColumnIndexByName(e *canal.RowsEvent, name string) int
 }
 
 func (s *BinLogStream) Start() {
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	cfg := canal.NewDefaultConfig()
-	cfg.Addr = gbeConfig.DataSource.Addr
-	cfg.User = gbeConfig.DataSource.User
-	cfg.Password = gbeConfig.DataSource.Password
+	cfg.Addr = spotConfig.DataSource.Addr
+	cfg.User = spotConfig.DataSource.User
+	cfg.Password = spotConfig.DataSource.Password
 	cfg.Dump.ExecutionPath = ""
-	cfg.Dump.TableDB = gbeConfig.DataSource.Database
+	cfg.Dump.TableDB = spotConfig.DataSource.Database
 	cfg.ParseTime = true
-	cfg.IncludeTableRegex = []string{gbeConfig.DataSource.Database + "\\..*"}
+	cfg.IncludeTableRegex = []string{spotConfig.DataSource.Database + "\\..*"}
 	cfg.ExcludeTableRegex = []string{"mysql\\..*"}
 	c, err := canal.NewCanal(cfg)
 	if err != nil {

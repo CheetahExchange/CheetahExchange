@@ -12,7 +12,7 @@ import (
 var productsSupported sync.Map
 
 func StartMatchingLogMaker() {
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	go func() {
 		for {
@@ -23,9 +23,9 @@ func StartMatchingLogMaker() {
 			for _, product := range products {
 				_, ok := productsSupported.Load(product.Id)
 				if !ok {
-					NewTickMaker(product.Id, matching.NewKafkaLogReader("tickMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-					NewFillMaker(matching.NewKafkaLogReader("fillMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
-					NewTradeMaker(matching.NewKafkaLogReader("tradeMaker", product.Id, gbeConfig.Kafka.Brokers)).Start()
+					NewTickMaker(product.Id, matching.NewKafkaLogReader("tickMaker", product.Id, spotConfig.Kafka.Brokers)).Start()
+					NewFillMaker(matching.NewKafkaLogReader("fillMaker", product.Id, spotConfig.Kafka.Brokers)).Start()
+					NewTradeMaker(matching.NewKafkaLogReader("tradeMaker", product.Id, spotConfig.Kafka.Brokers)).Start()
 					productsSupported.Store(product.Id, true)
 					log.Infof("start maker for %s ok", product.Id)
 				}

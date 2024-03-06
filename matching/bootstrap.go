@@ -11,7 +11,7 @@ import (
 var productsSupported sync.Map
 
 func StartEngine() {
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	go func() {
 		for {
@@ -22,9 +22,9 @@ func StartEngine() {
 			for _, product := range products {
 				_, ok := productsSupported.Load(product.Id)
 				if !ok {
-					orderReader := NewKafkaOrderReader(product.Id, gbeConfig.Kafka.Brokers)
+					orderReader := NewKafkaOrderReader(product.Id, spotConfig.Kafka.Brokers)
 					snapshotStore := NewRedisSnapshotStore(product.Id)
-					logStore := NewKafkaLogStore(product.Id, gbeConfig.Kafka.Brokers)
+					logStore := NewKafkaLogStore(product.Id, spotConfig.Kafka.Brokers)
 					matchEngine := NewEngine(product, orderReader, logStore, snapshotStore)
 					matchEngine.Start()
 					productsSupported.Store(product.Id, true)

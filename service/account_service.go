@@ -15,7 +15,7 @@ func ExecuteBill(userId int64, currency string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	// 获取所有未入账的bill
+	// Get all unsettled bills
 	bills, err := tx.GetUnsettledBillsByUserId(userId, currency)
 	if err != nil {
 		return err
@@ -37,12 +37,12 @@ func ExecuteBill(userId int64, currency string) error {
 		}
 	}
 
-	// 锁定用户资金记录
+	// Locking of user funds record
 	account, err := tx.GetAccountForUpdate(userId, currency)
 	if err != nil {
 		return err
 	}
-	// 资金记录不存在，创建一条，并再次执行加锁
+	// If funds record does not exist, create one and perform locking again
 	if account == nil {
 		err = tx.AddAccount(&models.Account{
 			UserId:    userId,
@@ -78,14 +78,6 @@ func HoldBalance(db models.Store, userId int64, currency string, size decimal.De
 	if size.LessThanOrEqual(decimal.Zero) {
 		return errors.New("size less than 0")
 	}
-
-	//enough, err := HasEnoughBalance(userId, currency, size)
-	//if err != nil {
-	//	return err
-	//}
-	//if !enough {
-	//	return errors.New(fmt.Sprintf("no enough %v : request=%v", currency, size))
-	//}
 
 	account, err := db.GetAccountForUpdate(userId, currency)
 	if err != nil {

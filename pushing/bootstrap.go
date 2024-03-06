@@ -12,7 +12,7 @@ import (
 var productsSupported sync.Map
 
 func StartServer() {
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	sub := newSubscription()
 
@@ -27,9 +27,9 @@ func StartServer() {
 			for _, product := range products {
 				_, ok := productsSupported.Load(product.Id)
 				if !ok {
-					newTickerStream(product.Id, sub, matching.NewKafkaLogReader("tickerStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
-					newMatchStream(product.Id, sub, matching.NewKafkaLogReader("matchStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
-					newOrderBookStream(product.Id, sub, matching.NewKafkaLogReader("orderBookStream", product.Id, gbeConfig.Kafka.Brokers)).Start()
+					newTickerStream(product.Id, sub, matching.NewKafkaLogReader("tickerStream", product.Id, spotConfig.Kafka.Brokers)).Start()
+					newMatchStream(product.Id, sub, matching.NewKafkaLogReader("matchStream", product.Id, spotConfig.Kafka.Brokers)).Start()
+					newOrderBookStream(product.Id, sub, matching.NewKafkaLogReader("orderBookStream", product.Id, spotConfig.Kafka.Brokers)).Start()
 					productsSupported.Store(product.Id, true)
 					log.Infof("start stream for %s ok", product.Id)
 				}
@@ -38,7 +38,7 @@ func StartServer() {
 		}
 	}()
 
-	go NewServer(gbeConfig.PushServer.Addr, gbeConfig.PushServer.Path, sub).Run()
+	go NewServer(spotConfig.PushServer.Addr, spotConfig.PushServer.Path, sub).Run()
 
 	log.Info("websocket server ok")
 }

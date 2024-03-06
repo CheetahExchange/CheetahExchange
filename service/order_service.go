@@ -121,7 +121,8 @@ func ExecuteFill(orderId int64) error {
 	if order == nil {
 		return fmt.Errorf("order not found: %v", orderId)
 	}
-	if order.Status == models.OrderStatusFilled || order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusPartial {
+	if order.Status == models.OrderStatusFilled || order.Status == models.OrderStatusCancelled ||
+		order.Status == models.OrderStatusPartial {
 		return fmt.Errorf("order status invalid: %v %v", orderId, order.Status)
 	}
 

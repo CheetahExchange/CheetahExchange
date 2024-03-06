@@ -30,10 +30,10 @@ func getWriter(productId string) *kafka.Writer {
 		return writer.(*kafka.Writer)
 	}
 
-	gbeConfig := conf.GetConfig()
+	spotConfig := conf.GetConfig()
 
 	newWriter := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:      gbeConfig.Kafka.Brokers,
+		Brokers:      spotConfig.Kafka.Brokers,
 		Topic:        matching.TopicOrderPrefix + productId,
 		Balancer:     &kafka.LeastBytes{},
 		BatchTimeout: 5 * time.Millisecond,
