@@ -167,3 +167,5 @@ insert into `g_product`(`id`,`created_at`,`updated_at`,`base_currency`,`quote_cu
 ('EOS-USDT',null,null,'EOS','USDT',0.0001000000000000,1000.0000000000000000,4,3,0,0E-16,0E-16),
 ('ETH-USDT',null,null,'ETH','USDT',0.0001000000000000,10000.0000000000000000,4,2,0.01,0E-16,0E-16),
 ('LTC-USDT',null,null,'LTC','USDT',0.0010000000000000,1000.0000000000000000,4,2,0.01,0E-16,0E-16);
+
+insert into `g_fee_rate`(`user_level`,`taker_fee_ratio`,`maker_fee_ratio`) values ('v1',0.002,0.001)

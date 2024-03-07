@@ -27,6 +27,12 @@ func PlaceOrder(userId int64, userLevel string, clientOid string, productId stri
 	if feeRate == nil {
 		return nil, errors.New(fmt.Sprintf("feeRate not found: %v", userLevel))
 	}
+	if feeRate.MakerFeeRatio.LessThan(decimal.Zero) || feeRate.MakerFeeRatio.GreaterThanOrEqual(decimal.NewFromInt(1)) {
+		return nil, errors.New(fmt.Sprintf("invalid feeRate.MakerFeeRatio"))
+	}
+	if feeRate.TakerFeeRatio.LessThan(decimal.Zero) || feeRate.TakerFeeRatio.GreaterThanOrEqual(decimal.NewFromInt(1)) {
+		return nil, errors.New(fmt.Sprintf("invalid feeRate.TakerFeeRatio"))
+	}
 
 	if orderType == models.OrderTypeLimit {
 		size = size.Round(product.BaseScale)
@@ -165,7 +171,7 @@ func ExecuteFill(orderId int64) error {
 				fill.Fee = fee
 				order.FillFees.Add(fee)
 
-				// 买单，incr base
+				// Order BUY, increase base
 				bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, fill.Size.Sub(fee), decimal.Zero,
 					models.BillTypeTrade, notes)
 				if err != nil {
@@ -173,13 +179,23 @@ func ExecuteFill(orderId int64) error {
 				}
 				bills = append(bills, bill)
 
-				// 买单，decr quote
+				// Order BUY, decrease quote
 				bill, err = AddDelayBill(db, order.UserId, product.QuoteCurrency, decimal.Zero, executedValue.Neg(),
 					models.BillTypeTrade, notes)
 				if err != nil {
 					return err
 				}
 				bills = append(bills, bill)
+
+				if fee.GreaterThan(decimal.Zero) {
+					// Order BUY, fee
+					bill, err = AddDelayBill(db, 0, product.BaseCurrency, fee, decimal.Zero,
+						models.BillTypeTrade, notes)
+					if err != nil {
+						return err
+					}
+					bills = append(bills, bill)
+				}
 
 			} else {
 				fee := decimal.NewFromInt(0)
@@ -193,7 +209,7 @@ func ExecuteFill(orderId int64) error {
 				fill.Fee = fee
 				order.FillFees.Add(fee)
 
-				// 卖单，decr base
+				// Order SELL, decrease base
 				bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, decimal.Zero, fill.Size.Neg(),
 					models.BillTypeTrade, notes)
 				if err != nil {
@@ -201,13 +217,23 @@ func ExecuteFill(orderId int64) error {
 				}
 				bills = append(bills, bill)
 
-				// 卖单，incr quote
+				// Order SELL, increase quote
 				bill, err = AddDelayBill(db, order.UserId, product.QuoteCurrency, executedValue.Sub(fee), decimal.Zero,
 					models.BillTypeTrade, notes)
 				if err != nil {
 					return err
 				}
 				bills = append(bills, bill)
+
+				if fee.GreaterThan(decimal.Zero) {
+					// Order SELL, fee
+					bill, err = AddDelayBill(db, 0, product.QuoteCurrency, fee, decimal.Zero,
+						models.BillTypeTrade, notes)
+					if err != nil {
+						return err
+					}
+					bills = append(bills, bill)
+				}
 			}
 
 		} else {
@@ -224,7 +250,7 @@ func ExecuteFill(orderId int64) error {
 			}
 
 			if order.Side == models.SideBuy {
-				// 如果是是买单，需要解冻剩余的funds
+				// If it is a buy order, you need to unfreeze the remaining funds
 				remainingFunds := order.Funds.Sub(order.ExecutedValue)
 				if remainingFunds.GreaterThan(decimal.Zero) {
 					bill, err := AddDelayBill(db, order.UserId, product.QuoteCurrency, remainingFunds, remainingFunds.Neg(),
@@ -236,7 +262,7 @@ func ExecuteFill(orderId int64) error {
 				}
 
 			} else {
-				// 如果是卖单，解冻剩余的size
+				// If it's a sell order, unfreeze the remaining size
 				remainingSize := order.Size.Sub(order.FilledSize)
 				if remainingSize.GreaterThan(decimal.Zero) {
 					bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, remainingSize, remainingSize.Neg(),
