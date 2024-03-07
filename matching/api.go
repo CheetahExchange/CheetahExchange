@@ -4,50 +4,50 @@ import (
 	"github.com/CheetahExchange/CheetahExchange/models"
 )
 
-// 用于撮合引擎读取order，需要支持设置offset，从指定的offset开始读取
+// Used for matching engine to read order, need to support setting offset, from the specified offset to start reading
 type OrderReader interface {
-	// 设置读取的起始offset
+	// Set the start offset for reading
 	SetOffset(offset int64) error
 
-	// 拉取order
+	// Pull order
 	FetchOrder() (offset int64, order *models.Order, err error)
 }
 
-// 用于保存撮合日志
+// Used to keep matching logs
 type LogStore interface {
-	// 保存日志
+	// Save Log
 	Store(logs []interface{}) error
 }
 
-// 以观察者模式读取撮合日志
+// Reading matching logs in observer mode
 type LogReader interface {
-	// 获取当前的productId
+	// Get the current productId
 	GetProductId() string
 
-	// 注册一个日志观察者
+	// Registering a log watcher
 	RegisterObserver(observer LogObserver)
 
-	// 开始执行读取log，读取到的log将会回调给观察者
+	// Start the execution of reading the log, the read log will be called back to the observer
 	Run(seq, offset int64)
 }
 
-// 撮合日志reader观察者
+// Matching log reader observer
 type LogObserver interface {
-	// 当读到OpenLog时回调
+	// Callback when OpenLog is read.
 	OnOpenLog(log *OpenLog, offset int64)
 
-	// 当读到MatchLog时回调
+	// Callback when MatchLog is read
 	OnMatchLog(log *MatchLog, offset int64)
 
-	// 当读到DoneLog是回调
+	// Callback when DoneLog is read
 	OnDoneLog(log *DoneLog, offset int64)
 }
 
-// 用于保存撮合引擎的快照
+// Used to save a snapshot of the matching engine
 type SnapshotStore interface {
-	// 保存快照
+	// Save Snapshot
 	Store(snapshot *Snapshot) error
 
-	// 获取最后一次快照
+	// Getting the last snapshot
 	GetLatest() (*Snapshot, error)
 }

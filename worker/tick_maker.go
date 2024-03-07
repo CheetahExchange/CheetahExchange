@@ -26,7 +26,7 @@ func NewTickMaker(productId string, logReader matching.LogReader) *TickMaker {
 		logReader: logReader,
 	}
 
-	// 加载数据库中记录的最新tick
+	// Load the latest tick recorded in the database
 	for _, granularity := range minutes {
 		tick, err := service.GetLastTickByProductId(productId, granularity)
 		if err != nil {

@@ -57,11 +57,11 @@ func (r *KafkaLogReader) Run(seq, offset int64) {
 		}
 
 		if base.Sequence <= lastSeq {
-			// 丢弃重复的log
+			// Discard duplicate logs
 			logger.Infof("%v:%v discard log :%+v", r.productId, r.readerId, base)
 			continue
 		} else if lastSeq > 0 && base.Sequence != lastSeq+1 {
-			// seq发生不连续，可能是撮合引擎发生了严重错误
+			// A discontinuity in seq occurs, possibly due to a serious error in the summarization engine
 			logger.Fatalf("non-sequence detected, lastSeq=%v seq=%v", lastSeq, base.Sequence)
 		}
 		lastSeq = base.Sequence

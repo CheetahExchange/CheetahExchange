@@ -23,7 +23,7 @@ const (
 
 var id int64
 
-// 每个连接对应一个client，client负责该连接的数据I/O
+// Each connection corresponds to a client, which is responsible for the data I/O of the connection.
 type Client struct {
 	id         int64
 	conn       *websocket.Conn
@@ -97,7 +97,7 @@ func (c *Client) runWriter() {
 	for {
 		select {
 		case message := <-c.writeCh:
-			// 转发l2change消息，进行增量推送
+			// Forward l2change messages for incremental push
 			switch message.(type) {
 			case *Level2Change:
 				c.l2ChangeCh <- message.(*Level2Change)
@@ -176,7 +176,7 @@ func (c *Client) runL2ChangeWriter(ctx context.Context) {
 					continue
 				}
 
-				// 最新的snapshot版本太旧了，丢弃，等待更新的snapshot版本
+				// Latest snapshot version is too old, discarded, waiting for newer snapshot version
 				if state.lastSeq > snapshot.Seq {
 					log.Warnf("last snapshot too old: %v changeSeq=%v snapshotSeq=%v",
 						l2Change.ProductId, state.lastSeq, snapshot.Seq)
@@ -195,13 +195,13 @@ func (c *Client) runL2ChangeWriter(ctx context.Context) {
 				continue
 			}
 
-			// 丢弃seq小于snapshot seq的变更
+			// Discard changes where seq is less than snapshot seq
 			if l2Change.Seq <= state.lastSeq {
 				log.Infof("discard l2changeSeq=%v snapshotSeq=%v", l2Change.Seq, state.lastSeq)
 				continue
 			}
 
-			// seq不连续，发生了消息丢失，重新发送快照
+			// seq is not contiguous, message loss occurred, resend snapshot
 			if l2Change.Seq != state.lastSeq+1 {
 				log.Infof("l2change lost newSeq=%v lastSeq=%v", l2Change.Seq, state.lastSeq)
 				state.resendSnapshot = true
@@ -216,7 +216,7 @@ func (c *Client) runL2ChangeWriter(ctx context.Context) {
 			state.lastSeq = l2Change.Seq
 			state.changes = append(state.changes, l2Change)
 
-			// 如果chan还有消息继续读满缓冲区
+			// If chan still has messages, continue to read the buffer.
 			if len(c.l2ChangeCh) > 0 && len(state.changes) < 10 {
 				continue
 			}

@@ -65,6 +65,7 @@ func initDb() error {
 			&models.Bill{},
 			&models.Tick{},
 			&models.Config{},
+			&models.FeeRate{},
 		}
 		for _, table := range tables {
 			log.Infof("migrating database, table: %v", reflect.TypeOf(table))

@@ -80,7 +80,7 @@ func (t *TradeMaker) runFlusher() {
 				continue
 			}
 
-			// 确保入库成功
+			// Ensuring Inbound Success
 			for {
 				err := service.AddTrades(trades)
 				if err != nil {
