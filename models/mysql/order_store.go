@@ -8,7 +8,7 @@ import (
 
 func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Raw("SELECT * FROM g_order WHERE id=?", orderId).Scan(&order).Error
+	err := s.db.Where("id =?", orderId).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -17,7 +17,7 @@ func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
 
 func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Raw("SELECT * FROM g_order WHERE user_id=? AND client_oid=?", userId, clientOid).Scan(&order).Error
+	err := s.db.Where("user_id =?", userId).Where("client_oid =?", clientOid).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -26,7 +26,7 @@ func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Ord
 
 func (s *Store) GetOrderByIdForUpdate(orderId int64) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Raw("SELECT * FROM g_order WHERE id=? FOR UPDATE", orderId).Scan(&order).Error
+	err := s.db.Raw("SELECT * FROM g_order WHERE id =? FOR UPDATE", orderId).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -42,19 +42,19 @@ func (s *Store) GetOrdersByUserId(userId int64, statuses []models.OrderStatus, s
 	}
 
 	if len(productId) != 0 {
-		db = db.Where("product_id=?", productId)
+		db = db.Where("product_id =?", productId)
 	}
 
 	if side != nil {
-		db = db.Where("side=?", side)
+		db = db.Where("side =?", side)
 	}
 
 	if beforeId > 0 {
-		db = db.Where("id>?", beforeId)
+		db = db.Where("id >?", beforeId)
 	}
 
 	if afterId > 0 {
-		db = db.Where("id<?", afterId)
+		db = db.Where("id <?", afterId)
 	}
 
 	if limit <= 0 {
@@ -79,7 +79,8 @@ func (s *Store) UpdateOrder(order *models.Order) error {
 }
 
 func (s *Store) UpdateOrderStatus(orderId int64, oldStatus, newStatus models.OrderStatus) (bool, error) {
-	ret := s.db.Exec("UPDATE g_order SET `status`=?,updated_at=? WHERE id=? AND `status`=? ", newStatus, time.Now(), orderId, oldStatus)
+	ret := s.db.Table("g_order").Update("status =?, updated_at =?", newStatus, time.Now()).
+		Where("id =? AND status =?", orderId, oldStatus)
 	if ret.Error != nil {
 		return false, ret.Error
 	}

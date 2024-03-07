@@ -7,7 +7,7 @@ import (
 
 func (s *Store) GetProductById(id string) (*models.Product, error) {
 	var product models.Product
-	err := s.db.Raw("SELECT * FROM g_product WHERE id=?", id).Scan(&product).Error
+	err := s.db.Where("id =?", id).Scan(&product).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

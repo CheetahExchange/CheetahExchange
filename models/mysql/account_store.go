@@ -8,8 +8,7 @@ import (
 
 func (s *Store) GetAccount(userId int64, currency string) (*models.Account, error) {
 	var account models.Account
-	err := s.db.Raw("SELECT * FROM g_account WHERE user_id=? AND currency=?", userId,
-		currency).Scan(&account).Error
+	err := s.db.Where("user_id =?", userId).Where("currency =?", currency).Scan(&account).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -17,7 +16,7 @@ func (s *Store) GetAccount(userId int64, currency string) (*models.Account, erro
 }
 
 func (s *Store) GetAccountsByUserId(userId int64) ([]*models.Account, error) {
-	db := s.db.Where("user_id=?", userId)
+	db := s.db.Where("user_id =?", userId)
 
 	var accounts []*models.Account
 	err := db.Find(&accounts).Error
@@ -26,7 +25,7 @@ func (s *Store) GetAccountsByUserId(userId int64) ([]*models.Account, error) {
 
 func (s *Store) GetAccountForUpdate(userId int64, currency string) (*models.Account, error) {
 	var account models.Account
-	err := s.db.Raw("SELECT * FROM g_account WHERE user_id=? AND currency=? FOR UPDATE", userId, currency).Scan(&account).Error
+	err := s.db.Raw("SELECT * FROM g_account WHERE user_id =? AND currency =? FOR UPDATE", userId, currency).Scan(&account).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

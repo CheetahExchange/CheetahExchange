@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Store) GetUnsettledBillsByUserId(userId int64, currency string) ([]*models.Bill, error) {
-	db := s.db.Where("settled =?", 0).Where("user_id=?", userId).
+	db := s.db.Where("settled =?", 0).Where("user_id =?", userId).
 		Where("currency=?", currency).Order("id ASC").Limit(100)
 
 	var bills []*models.Bill
@@ -30,11 +30,11 @@ func (s *Store) AddBills(bills []*models.Bill) error {
 	}
 	var valueStrings []string
 	for _, bill := range bills {
-		valueString := fmt.Sprintf("('%v', %v, '%v', %v, %v, '%v', %v, '%v')",
+		valueString := fmt.Sprintf("('%v',%v,'%v',%v,%v,'%v',%v,'%v')",
 			time.Now(), bill.UserId, bill.Currency, bill.Available, bill.Hold, bill.Type, bill.Settled, bill.Notes)
 		valueStrings = append(valueStrings, valueString)
 	}
-	sql := fmt.Sprintf("INSERT INTO g_bill (created_at, user_id,currency,available,hold, type,settled,notes) VALUES %s", strings.Join(valueStrings, ","))
+	sql := fmt.Sprintf("INSERT INTO g_bill(created_at,user_id,currency,available,hold,type,settled,notes) VALUES %s", strings.Join(valueStrings, ","))
 	return s.db.Exec(sql).Error
 }
 
