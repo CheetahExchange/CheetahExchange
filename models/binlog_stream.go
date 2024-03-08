@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/CheetahExchange/CheetahExchange/conf"
 	"github.com/CheetahExchange/CheetahExchange/utils"
+	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/go-redis/redis/v8"
 	"github.com/shopspring/decimal"
 	"github.com/siddontang/go-log/log"
-	"github.com/siddontang/go-mysql/canal"
 	"reflect"
 	"time"
 )
