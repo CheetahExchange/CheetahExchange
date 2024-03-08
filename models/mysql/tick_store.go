@@ -9,16 +9,16 @@ import (
 )
 
 func (s *Store) GetTicksByProductId(productId string, granularity int64, limit int) ([]*models.Tick, error) {
-	db := s.db.Where("product_id =?", productId).Where("granularity =?", granularity).
-		Order("time DESC").Limit(limit)
 	var ticks []*models.Tick
+	db := s.db.Table("g_tick").Where("product_id =?", productId).Where("granularity =?", granularity).
+		Order("time DESC").Limit(limit)
 	err := db.Find(&ticks).Error
 	return ticks, err
 }
 
 func (s *Store) GetLastTickByProductId(productId string, granularity int64) (*models.Tick, error) {
 	var tick models.Tick
-	err := s.db.Where("product_id =?", productId).Where("granularity =?", granularity).
+	err := s.db.Table("g_tick").Where("product_id =?", productId).Where("granularity =?", granularity).
 		Order("time DESC").Limit(1).Scan(&tick).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil

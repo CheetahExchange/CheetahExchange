@@ -7,7 +7,7 @@ import (
 
 func (s *Store) GetProductById(id string) (*models.Product, error) {
 	var product models.Product
-	err := s.db.Where("id =?", id).Scan(&product).Error
+	err := s.db.Table("g_product").Where("id =?", id).Scan(&product).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -16,6 +16,6 @@ func (s *Store) GetProductById(id string) (*models.Product, error) {
 
 func (s *Store) GetProducts() ([]*models.Product, error) {
 	var products []*models.Product
-	err := s.db.Find(&products).Error
+	err := s.db.Table("g_product").Find(&products).Error
 	return products, err
 }

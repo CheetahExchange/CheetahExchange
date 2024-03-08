@@ -10,7 +10,7 @@ import (
 
 func (s *Store) GetLastTradeByProductId(productId string) (*models.Trade, error) {
 	var trade models.Trade
-	err := s.db.Where("product_id =?", productId).Order("id DESC").Limit(1).Find(&trade).Error
+	err := s.db.Table("g_trade").Where("product_id =?", productId).Order("id DESC").Limit(1).Find(&trade).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -18,7 +18,7 @@ func (s *Store) GetLastTradeByProductId(productId string) (*models.Trade, error)
 }
 
 func (s *Store) GetTradesByProductId(productId string, count int) ([]*models.Trade, error) {
-	db := s.db.Where("product_id =?", productId).Order("id DESC").Limit(count)
+	db := s.db.Table("g_trade").Where("product_id =?", productId).Order("id DESC").Limit(count)
 	var trades []*models.Trade
 	err := db.Find(&trades).Error
 	return trades, err

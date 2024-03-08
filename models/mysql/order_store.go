@@ -8,7 +8,7 @@ import (
 
 func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Where("id =?", orderId).Scan(&order).Error
+	err := s.db.Table("g_order").Where("id =?", orderId).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -17,7 +17,7 @@ func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
 
 func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Where("user_id =?", userId).Where("client_oid =?", clientOid).Scan(&order).Error
+	err := s.db.Table("g_order").Where("user_id =?", userId).Where("client_oid =?", clientOid).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -35,7 +35,7 @@ func (s *Store) GetOrderByIdForUpdate(orderId int64) (*models.Order, error) {
 
 func (s *Store) GetOrdersByUserId(userId int64, statuses []models.OrderStatus, side *models.Side, productId string,
 	beforeId, afterId int64, limit int) ([]*models.Order, error) {
-	db := s.db.Where("user_id =?", userId)
+	db := s.db.Table("g_order").Where("user_id =?", userId)
 
 	if len(statuses) != 0 {
 		db = db.Where("status IN (?)", statuses)

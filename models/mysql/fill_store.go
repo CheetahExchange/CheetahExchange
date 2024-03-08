@@ -10,7 +10,7 @@ import (
 
 func (s *Store) GetLastFillByProductId(productId string) (*models.Fill, error) {
 	var fill models.Fill
-	err := s.db.Where("product_id =?", productId).Order("id DESC").Limit(1).Find(&fill).Error
+	err := s.db.Table("g_fill").Where("product_id =?", productId).Order("id DESC").Limit(1).Find(&fill).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -18,7 +18,7 @@ func (s *Store) GetLastFillByProductId(productId string) (*models.Fill, error) {
 }
 
 func (s *Store) GetUnsettledFillsByOrderId(orderId int64) ([]*models.Fill, error) {
-	db := s.db.Where("settled =?", 0).Where("order_id =?", orderId).
+	db := s.db.Table("g_fill").Where("settled =?", 0).Where("order_id =?", orderId).
 		Order("id ASC").Limit(100)
 
 	var fills []*models.Fill
@@ -27,7 +27,7 @@ func (s *Store) GetUnsettledFillsByOrderId(orderId int64) ([]*models.Fill, error
 }
 
 func (s *Store) GetUnsettledFills(count int32) ([]*models.Fill, error) {
-	db := s.db.Where("settled =?", 0).Order("id ASC").Limit(count)
+	db := s.db.Table("g_fill").Where("settled =?", 0).Order("id ASC").Limit(count)
 
 	var fills []*models.Fill
 	err := db.Find(&fills).Error

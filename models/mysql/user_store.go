@@ -8,7 +8,7 @@ import (
 
 func (s *Store) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
-	err := s.db.Where("email =?", email).Scan(&user).Error
+	err := s.db.Table("g_user").Where("email =?", email).Scan(&user).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

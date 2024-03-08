@@ -8,18 +8,16 @@ import (
 )
 
 func (s *Store) GetUnsettledBillsByUserId(userId int64, currency string) ([]*models.Bill, error) {
-	db := s.db.Where("settled =?", 0).Where("user_id =?", userId).
-		Where("currency=?", currency).Order("id ASC").Limit(100)
-
 	var bills []*models.Bill
+	db := s.db.Table("g_bill").Where("settled =?", 0).Where("user_id =?", userId).
+		Where("currency=?", currency).Order("id ASC").Limit(100)
 	err := db.Find(&bills).Error
 	return bills, err
 }
 
 func (s *Store) GetUnsettledBills() ([]*models.Bill, error) {
-	db := s.db.Where("settled =?", 0).Order("id ASC").Limit(100)
-
 	var bills []*models.Bill
+	db := s.db.Table("g_bill").Where("settled =?", 0).Order("id ASC").Limit(100)
 	err := db.Find(&bills).Error
 	return bills, err
 }
