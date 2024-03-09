@@ -5,7 +5,6 @@ import (
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/jinzhu/gorm"
 	"strings"
-	"time"
 )
 
 func (s *Store) GetLastTradeByProductId(productId string) (*models.Trade, error) {
@@ -30,8 +29,8 @@ func (s *Store) AddTrades(trades []*models.Trade) error {
 	}
 	var valueStrings []string
 	for _, trade := range trades {
-		valueString := fmt.Sprintf("('%v','%v',%v,%v,%v,%v,%v,%v,%v,'%v','%v',%v,%v)",
-			time.Now(), trade.ProductId, trade.TradeSeq, trade.TakerOrderId, trade.TakerUserId, trade.MakerOrderId, trade.MakerUserId,
+		valueString := fmt.Sprintf("(NOW(),'%v',%v,%v,%v,%v,%v,%v,%v,'%v','%v',%v,%v)",
+			trade.ProductId, trade.TradeSeq, trade.TakerOrderId, trade.TakerUserId, trade.MakerOrderId, trade.MakerUserId,
 			trade.Price, trade.Size, trade.Side, trade.Time, trade.LogOffset, trade.LogSeq)
 		valueStrings = append(valueStrings, valueString)
 	}

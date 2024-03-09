@@ -79,8 +79,8 @@ func (s *Store) UpdateOrder(order *models.Order) error {
 }
 
 func (s *Store) UpdateOrderStatus(orderId int64, oldStatus, newStatus models.OrderStatus) (bool, error) {
-	ret := s.db.Table("g_order").Update("status =?, updated_at =?", newStatus, time.Now()).
-		Where("id =? AND status =?", orderId, oldStatus)
+	ret := s.db.Table("g_order").Where("id =? AND status =?", orderId, oldStatus).
+		Updates(models.Order{Status: newStatus, UpdatedAt: time.Now()})
 	if ret.Error != nil {
 		return false, ret.Error
 	}

@@ -26,6 +26,7 @@ func CreateUser(email, password string) (*models.User, error) {
 	user = &models.User{
 		Email:        email,
 		PasswordHash: encryptPassword(password),
+		UserLevel:    "v1",
 	}
 	return user, mysql.SharedStore().AddUser(user)
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/jinzhu/gorm"
 	"strings"
-	"time"
 )
 
 func (s *Store) GetLastFillByProductId(productId string) (*models.Fill, error) {
@@ -44,8 +43,8 @@ func (s *Store) AddFills(fills []*models.Fill) error {
 	}
 	var valueStrings []string
 	for _, fill := range fills {
-		valueString := fmt.Sprintf("('%v','%v',%v,%v,%v,%v,%v,%v,'%v',%v,%v,'%v',%v,'%v',%v,%v)",
-			time.Now(), fill.ProductId, fill.TradeSeq, fill.OrderId, fill.MessageSeq, fill.Size, fill.Price, fill.Funds,
+		valueString := fmt.Sprintf("(NOW(),'%v',%v,%v,%v,%v,%v,%v,'%v',%v,%v,'%v',%v,'%v',%v,%v)",
+			fill.ProductId, fill.TradeSeq, fill.OrderId, fill.MessageSeq, fill.Size, fill.Price, fill.Funds,
 			fill.Liquidity, fill.Fee, fill.Settled, fill.Side, fill.Done, fill.DoneReason, fill.LogOffset, fill.LogSeq)
 		valueStrings = append(valueStrings, valueString)
 	}

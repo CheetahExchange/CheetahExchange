@@ -204,7 +204,7 @@ func (s *BinLogStream) parseRow(e *canal.RowsEvent, row []interface{}, dest inte
 				f.Set(reflect.ValueOf(rowVal.(time.Time)))
 			}
 		case "Decimal":
-			d := decimal.NewFromFloat(rowVal.(float64))
+			d, _ := decimal.NewFromString(rowVal.(string))
 			f.Set(reflect.ValueOf(d))
 		default:
 			f.SetString(rowVal.(string))
