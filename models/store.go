@@ -44,7 +44,7 @@ type Store interface {
 	GetTradesByProductId(productId string, count int) ([]*Trade, error)
 	AddTrades(trades []*Trade) error
 
-	GetTicksByProductId(productId string, granularity int64, limit int) ([]*Tick, error)
+	GetTicksByProductId(productId string, granularity int64, beforeTime, afterTime int64, limit int) ([]*Tick, error)
 	GetLastTickByProductId(productId string, granularity int64) (*Tick, error)
 	GetLastTicksAllByProductId(productId string) ([]*Tick, error)
 	AddTicks(ticks []*Tick) error

@@ -3,10 +3,10 @@ package rest
 import (
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/service"
-	"github.com/CheetahExchange/CheetahExchange/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -52,9 +52,12 @@ func GetProductTrades(ctx *gin.Context) {
 // GET /products/<product-id>/candles
 func GetProductCandles(ctx *gin.Context) {
 	productId := ctx.Param("productId")
-	granularity, _ := utils.AToInt64(ctx.Query("granularity"))
-	limit, _ := utils.AToInt64(ctx.DefaultQuery("limit", "1000"))
-	if limit <= 0 || limit > 10000 {
+	granularity, _ := strconv.ParseInt(ctx.Query("granularity"), 10, 64)
+
+	before, _ := strconv.ParseInt(ctx.Query("before"), 10, 64)
+	after, _ := strconv.ParseInt(ctx.Query("after"), 10, 64)
+	limit, _ := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if limit <= 0 || limit > 1000 {
 		limit = 1000
 	}
 
@@ -62,8 +65,8 @@ func GetProductCandles(ctx *gin.Context) {
 	//    [ time, low, high, open, close, volume ],
 	//    [ 1415398768, 0.32, 4.2, 0.35, 4.2, 12.3 ],
 	//]
-	var tickVos [][6]float64
-	ticks, err := service.GetTicksByProductId(productId, granularity/60, int(limit))
+	var tickVos [][6]decimal.Decimal
+	ticks, err := service.GetTicksByProductId(productId, granularity/60, before, after, int(limit))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, newMessageVo(err))
 		return
@@ -111,10 +114,18 @@ func GetProductCandles(ctx *gin.Context) {
 		}
 
 		for _, amendTick := range amendTicksReversed {
-			tickVos = append(tickVos, [6]float64{float64(amendTick.Time), utils.DToF64(amendTick.Low), utils.DToF64(amendTick.High),
-				utils.DToF64(amendTick.Open), utils.DToF64(amendTick.Close), utils.DToF64(amendTick.Volume)})
+			tickVos = append(tickVos, [6]decimal.Decimal{decimal.NewFromInt(amendTick.Time), amendTick.Low, amendTick.High,
+				amendTick.Open, amendTick.Close, amendTick.Volume})
 		}
 	}
+
+	var newBefore, newAfter int64 = 0, 0
+	if len(tickVos) > 0 {
+		newBefore = tickVos[0][0].BigInt().Int64()
+		newAfter = tickVos[len(tickVos)-1][0].BigInt().Int64()
+	}
+	ctx.Header("gbe-before", strconv.FormatInt(newBefore, 10))
+	ctx.Header("gbe-after", strconv.FormatInt(newAfter, 10))
 
 	ctx.JSON(http.StatusOK, tickVos)
 }

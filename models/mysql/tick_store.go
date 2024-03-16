@@ -7,10 +7,23 @@ import (
 	"strings"
 )
 
-func (s *Store) GetTicksByProductId(productId string, granularity int64, limit int) ([]*models.Tick, error) {
+func (s *Store) GetTicksByProductId(productId string, granularity int64, beforeTime, afterTime int64, limit int) ([]*models.Tick, error) {
 	var ticks []*models.Tick
-	db := s.db.Table("g_tick").Where("product_id =?", productId).Where("granularity =?", granularity).
-		Order("time DESC").Limit(limit)
+	db := s.db.Table("g_tick").Where("product_id =?", productId).Where("granularity =?", granularity)
+
+	if beforeTime > 0 {
+		db = db.Where("time >?", beforeTime)
+	}
+
+	if afterTime > 0 {
+		db = db.Where("time <?", afterTime)
+	}
+
+	if limit <= 0 {
+		limit = 100
+	}
+
+	db = db.Order("time DESC").Limit(limit)
 	err := db.Find(&ticks).Error
 	return ticks, err
 }

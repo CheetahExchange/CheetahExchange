@@ -103,7 +103,7 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 }
 
 func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage, error) {
-	ticks24h, err := service.GetTicksByProductId(s.productId, 1*60, 24)
+	ticks24h, err := service.GetTicksByProductId(s.productId, 1*60, 0, 0, 24)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage,
 		tick24h = &models.Tick{}
 	}
 
-	ticks30d, err := service.GetTicksByProductId(s.productId, 24*60, 30)
+	ticks30d, err := service.GetTicksByProductId(s.productId, 24*60, 0, 0, 30)
 	if err != nil {
 		return nil, err
 	}

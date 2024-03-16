@@ -199,6 +199,9 @@ func GetOrders(ctx *gin.Context) {
 	before, _ := strconv.ParseInt(ctx.Query("before"), 10, 64)
 	after, _ := strconv.ParseInt(ctx.Query("after"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if limit <= 0 || limit > 100 {
+		limit = 100
+	}
 
 	orders, err := service.GetOrdersByUserId(GetCurrentUser(ctx).Id, statuses, side, productId, before, after, int(limit))
 	if err != nil {
@@ -206,7 +209,7 @@ func GetOrders(ctx *gin.Context) {
 		return
 	}
 
-	orderVos := []*orderVo{}
+	var orderVos []*orderVo
 	for _, order := range orders {
 		orderVos = append(orderVos, newOrderVo(order))
 	}
