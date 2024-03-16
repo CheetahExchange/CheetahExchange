@@ -3,6 +3,7 @@ package rest
 import (
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/service"
+	"github.com/CheetahExchange/CheetahExchange/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"net/http"
@@ -65,7 +66,7 @@ func GetProductCandles(ctx *gin.Context) {
 	//    [ time, low, high, open, close, volume ],
 	//    [ 1415398768, 0.32, 4.2, 0.35, 4.2, 12.3 ],
 	//]
-	var tickVos [][6]decimal.Decimal
+	var tickVos [][6]float64
 	ticks, err := service.GetTicksByProductId(productId, granularity/60, before, after, int(limit))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, newMessageVo(err))
@@ -114,15 +115,15 @@ func GetProductCandles(ctx *gin.Context) {
 		}
 
 		for _, amendTick := range amendTicksReversed {
-			tickVos = append(tickVos, [6]decimal.Decimal{decimal.NewFromInt(amendTick.Time), amendTick.Low, amendTick.High,
-				amendTick.Open, amendTick.Close, amendTick.Volume})
+			tickVos = append(tickVos, [6]float64{float64(amendTick.Time), utils.DToF64(amendTick.Low), utils.DToF64(amendTick.High),
+				utils.DToF64(amendTick.Open), utils.DToF64(amendTick.Close), utils.DToF64(amendTick.Volume)})
 		}
 	}
 
 	var newBefore, newAfter int64 = 0, 0
 	if len(tickVos) > 0 {
-		newBefore = tickVos[0][0].BigInt().Int64()
-		newAfter = tickVos[len(tickVos)-1][0].BigInt().Int64()
+		newBefore = int64(tickVos[0][0])
+		newAfter = int64(tickVos[len(tickVos)-1][0])
 	}
 	ctx.Header("gbe-before", strconv.FormatInt(newBefore, 10))
 	ctx.Header("gbe-after", strconv.FormatInt(newAfter, 10))
