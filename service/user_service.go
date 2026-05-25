@@ -1,13 +1,12 @@
 package service
 
 import (
-	"crypto/md5"
-	"fmt"
 	"github.com/CheetahExchange/CheetahExchange/conf"
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/models/mysql"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -25,7 +24,7 @@ func CreateUser(email, password string) (*models.User, error) {
 
 	user = &models.User{
 		Email:        email,
-		PasswordHash: encryptPassword(password),
+		PasswordHash: hashPassword(password),
 		UserLevel:    "v1",
 	}
 	return user, mysql.SharedStore().AddUser(user)
@@ -39,8 +38,7 @@ func RefreshAccessToken(email, password string) (string, error) {
 	if user == nil {
 		return "", errors.New("email not found or password error")
 	}
-	if user.PasswordHash != encryptPassword(password) {
-		return "", errors.New("email not found or password error")
+	if !checkPassword(password, user.PasswordHash) {
 	}
 
 	claim := jwt.MapClaims{
@@ -101,7 +99,7 @@ func ChangePassword(email, newPassword string) error {
 	if user == nil {
 		return errors.New("user not found")
 	}
-	user.PasswordHash = encryptPassword(newPassword)
+	user.PasswordHash = hashPassword(newPassword)
 	return mysql.SharedStore().UpdateUser(user)
 }
 
@@ -114,13 +112,20 @@ func GetUserByPassword(email, password string) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	if user == nil || user.PasswordHash != encryptPassword(password) {
+	if user == nil || !checkPassword(password, user.PasswordHash) {
 		return nil, errors.New("user not found or password incorrect")
 	}
 	return user, nil
 }
 
-func encryptPassword(password string) string {
-	hash := md5.Sum([]byte(password))
-	return fmt.Sprintf("%x", hash)
+func hashPassword(password string) string {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+	return string(hash)
+}
+
+func checkPassword(password, hash string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }
