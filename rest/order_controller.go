@@ -185,7 +185,7 @@ func GetOrders(ctx *gin.Context) {
 
 	var side *models.Side
 	var err error
-	rawSide := ctx.GetString("side")
+	rawSide := ctx.Query("side")
 	if len(rawSide) > 0 {
 		side, err = models.NewSideFromString(rawSide)
 		if err != nil {
