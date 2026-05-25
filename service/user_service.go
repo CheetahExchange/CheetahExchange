@@ -42,10 +42,8 @@ func RefreshAccessToken(email, password string) (string, error) {
 	}
 
 	claim := jwt.MapClaims{
-		"id":           user.Id,
-		"email":        user.Email,
-		"passwordHash": user.PasswordHash,
-		"expiredAt":    time.Now().Unix(),
+		"userId": user.Id,
+		"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 	return token.SignedString([]byte(conf.GetConfig().JwtSecret))
@@ -59,36 +57,21 @@ func CheckToken(tokenStr string) (*models.User, error) {
 		return nil, err
 	}
 	claim, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("cannot convert claim to MapClaims")
-	}
-	if !token.Valid {
+	if !ok || !token.Valid {
 		return nil, errors.New("token is invalid")
 	}
 
-	emailVal, found := claim["email"]
+	userIdVal, found := claim["userId"]
 	if !found {
 		return nil, errors.New("bad token")
 	}
-	email := emailVal.(string)
 
-	passwordHashVal, found := claim["passwordHash"]
-	if !found {
+	switch v := userIdVal.(type) {
+	case float64:
+		return GetUserById(int64(v))
+	default:
 		return nil, errors.New("bad token")
 	}
-	passwordHash := passwordHashVal.(string)
-
-	user, err := GetUserByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, errors.New("bad token")
-	}
-	if user.PasswordHash != passwordHash {
-		return nil, errors.New("bad token")
-	}
-	return user, nil
 }
 
 func ChangePassword(email, newPassword string) error {
@@ -105,6 +88,10 @@ func ChangePassword(email, newPassword string) error {
 
 func GetUserByEmail(email string) (*models.User, error) {
 	return mysql.SharedStore().GetUserByEmail(email)
+}
+
+func GetUserById(id int64) (*models.User, error) {
+	return mysql.SharedStore().GetUserById(id)
 }
 
 func GetUserByPassword(email, password string) (*models.User, error) {

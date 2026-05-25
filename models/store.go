@@ -8,6 +8,7 @@ type Store interface {
 	GetConfigs() ([]*Config, error)
 
 	GetUserByEmail(email string) (*User, error)
+	GetUserById(id int64) (*User, error)
 	AddUser(user *User) error
 	UpdateUser(user *User) error
 
