@@ -29,9 +29,9 @@ type AccountVo struct {
 type placeOrderRequest struct {
 	ClientOid   string  `json:"client_oid"`
 	ProductId   string  `json:"productId"`
-	Size        float64 `json:"size"`
-	Funds       float64 `json:"funds"`
-	Price       float64 `json:"price"`
+	Size        string `json:"size"`
+	Funds       string `json:"funds"`
+	Price       string `json:"price"`
 	Side        string  `json:"side"`
 	Type        string  `json:"type"`        // [optional] limit or market (default is limit)
 	TimeInForce string  `json:"timeInForce"` // [optional] GTC, IOC, FOK or GTX (default is GTC)

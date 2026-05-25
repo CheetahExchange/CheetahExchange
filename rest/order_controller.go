@@ -87,12 +87,21 @@ func PlaceOrder(ctx *gin.Context) {
 		}
 	}
 
-	//todo
-	//size, err := utils.StringToFloat64(req.size)
-	//price, err := utils.StringToFloat64(req.price)
-	size := decimal.NewFromFloat(req.Size)
-	price := decimal.NewFromFloat(req.Price)
-	funds := decimal.NewFromFloat(req.Funds)
+	size, err := decimal.NewFromString(req.Size)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, newMessageVo(fmt.Errorf("invalid size: %v", err)))
+		return
+	}
+	price, err := decimal.NewFromString(req.Price)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, newMessageVo(fmt.Errorf("invalid price: %v", err)))
+		return
+	}
+	funds, err := decimal.NewFromString(req.Funds)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, newMessageVo(fmt.Errorf("invalid funds: %v", err)))
+		return
+	}
 
 	order, err := service.PlaceOrder(GetCurrentUser(ctx).Id, GetCurrentUser(ctx).UserLevel, req.ClientOid,
 		req.ProductId, orderType, timeInForce,
