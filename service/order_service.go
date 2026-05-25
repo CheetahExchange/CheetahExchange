@@ -169,7 +169,7 @@ func ExecuteFill(orderId int64) error {
 					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
 				}
 				fill.Fee = fee
-				order.FillFees.Add(fee)
+				order.FillFees = order.FillFees.Add(fee)
 
 				// Order BUY, increase base
 				bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, fill.Size.Sub(fee), decimal.Zero,
@@ -207,7 +207,7 @@ func ExecuteFill(orderId int64) error {
 					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
 				}
 				fill.Fee = fee
-				order.FillFees.Add(fee)
+				order.FillFees = order.FillFees.Add(fee)
 
 				// Order SELL, decrease base
 				bill, err := AddDelayBill(db, order.UserId, product.BaseCurrency, decimal.Zero, fill.Size.Neg(),
