@@ -1,7 +1,6 @@
 package matching
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -93,8 +92,8 @@ type Window struct {
 	Bitmap Bitmap
 }
 
-func newWindow(min, max int64) Window {
-	return Window{
+func newWindow(min, max int64) *Window {
+	return &Window{
 		Min:    min,
 		Max:    max,
 		Cap:    max - min,
@@ -102,22 +101,30 @@ func newWindow(min, max int64) Window {
 	}
 }
 
-func (w Window) put(val int64) error {
-	if val <= w.Min {
-		return errors.New(fmt.Sprintf("expired val %v, current Window [%v-%v]", val, w.Min, w.Max))
-	} else if val > w.Max {
-		delta := val - w.Max
+func (w *Window) put(val int64) error {
+	if val < w.Min {
+		return fmt.Errorf("expired val %v, current Window [%v-%v)", val, w.Min, w.Max)
+	}
+	if val >= w.Max {
+		delta := val - w.Max + 1
+		// clear old bits that are being slid past
+		for i := w.Min; i < w.Min+delta; i++ {
+			w.Bitmap.Set(i%w.Cap, false)
+		}
 		w.Min += delta
 		w.Max += delta
 		w.Bitmap.Set(val%w.Cap, true)
 	} else if w.Bitmap.Get(val % w.Cap) {
-		return errors.New(fmt.Sprintf("existed val %v", val))
+		return fmt.Errorf("existed val %v", val)
 	} else {
 		w.Bitmap.Set(val%w.Cap, true)
 	}
 	return nil
 }
 
-func (w Window) contains(val int64) bool {
-	return false
+func (w *Window) contains(val int64) bool {
+	if val < w.Min || val >= w.Max {
+		return false
+	}
+	return w.Bitmap.Get(val % w.Cap)
 }

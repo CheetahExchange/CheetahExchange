@@ -29,7 +29,7 @@ type orderBook struct {
 
 	// to prevent the order from being submitted to the order book repeatedly,
 	// a sliding window de duplication strategy is adopted.
-	orderIdWindow Window
+	orderIdWindow *Window
 }
 
 type orderBookSnapshot struct {
@@ -324,7 +324,7 @@ func (o *orderBook) Snapshot() orderBookSnapshot {
 		Orders:        make([]BookOrder, len(o.depths[models.SideSell].orders)+len(o.depths[models.SideBuy].orders)),
 		LogSeq:        o.logSeq,
 		TradeSeq:      o.tradeSeq,
-		OrderIdWindow: o.orderIdWindow,
+		OrderIdWindow: *o.orderIdWindow,
 	}
 
 	i := 0
@@ -343,7 +343,7 @@ func (o *orderBook) Snapshot() orderBookSnapshot {
 func (o *orderBook) Restore(snapshot *orderBookSnapshot) {
 	o.logSeq = snapshot.LogSeq
 	o.tradeSeq = snapshot.TradeSeq
-	o.orderIdWindow = snapshot.OrderIdWindow
+	o.orderIdWindow = &snapshot.OrderIdWindow
 	if o.orderIdWindow.Cap == 0 {
 		o.orderIdWindow = newWindow(0, orderIdWindowCap)
 	}
