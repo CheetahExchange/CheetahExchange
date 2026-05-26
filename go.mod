@@ -3,13 +3,13 @@ module github.com/CheetahExchange/CheetahExchange
 go 1.25.0
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emirpasic/gods v1.12.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-mysql-org/go-mysql v1.7.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/hashicorp/golang-lru v0.5.0
@@ -19,6 +19,7 @@ require (
 	github.com/segmentio/kafka-go v0.4.33
 	github.com/shopspring/decimal v1.3.1
 	github.com/siddontang/go-log v0.0.0-20190221022429-1e957dd83bed
+	golang.org/x/crypto v0.52.0
 )
 
 require (
@@ -50,8 +51,6 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.18.1 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect

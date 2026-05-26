@@ -4,7 +4,7 @@ import (
 	"github.com/CheetahExchange/CheetahExchange/conf"
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/models/mysql"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"time"

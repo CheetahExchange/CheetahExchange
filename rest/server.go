@@ -3,7 +3,7 @@ package rest
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
+	"io"
 )
 
 type HttpServer struct {
@@ -18,7 +18,7 @@ func NewHttpServer(addr string) *HttpServer {
 
 func (server *HttpServer) Start() {
 	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = ioutil.Discard
+	gin.DefaultWriter = io.Discard
 
 	r := gin.Default()
 	//r.Use(setCROSOptions)
