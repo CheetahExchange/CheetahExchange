@@ -107,8 +107,12 @@ func (w *Window) put(val int64) error {
 	}
 	if val >= w.Max {
 		delta := val - w.Max + 1
+		var rangeDelta int64 = delta
+		if rangeDelta > w.Cap {
+			rangeDelta = w.Cap
+		}
 		// clear old bits that are being slid past
-		for i := w.Min; i < w.Min+delta; i++ {
+		for i := w.Min; i < w.Min+rangeDelta; i++ {
 			w.Bitmap.Set(i%w.Cap, false)
 		}
 		w.Min += delta
