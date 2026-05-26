@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/models/mysql"
 	"github.com/shopspring/decimal"
@@ -89,7 +90,7 @@ func HoldBalance(db models.Store, userId int64, currency string, size decimal.De
 
 	enough := account.Available.GreaterThanOrEqual(size)
 	if !enough {
-		return errors.New(fmt.Sprintf("no enough %v : request=%v", currency, size))
+		return fmt.Errorf("no enough %v : request=%v", currency, size)
 	}
 
 	account.Available = account.Available.Sub(size)

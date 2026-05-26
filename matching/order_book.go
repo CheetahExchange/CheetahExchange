@@ -1,13 +1,13 @@
 package matching
 
 import (
-	"errors"
 	"fmt"
+	"math"
+
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/shopspring/decimal"
 	"github.com/siddontang/go-log/log"
-	"math"
 )
 
 const (
@@ -380,11 +380,11 @@ func (d *depth) add(order BookOrder) {
 func (d *depth) decrSize(orderId int64, size decimal.Decimal) error {
 	order, found := d.orders[orderId]
 	if !found {
-		return errors.New(fmt.Sprintf("order %v not found on book", orderId))
+		return fmt.Errorf("order %v not found on book", orderId)
 	}
 
 	if order.Size.LessThan(size) {
-		return errors.New(fmt.Sprintf("order %v Size %v less than %v", orderId, order.Size, size))
+		return fmt.Errorf("order %v Size %v less than %v", orderId, order.Size, size)
 	}
 
 	order.Size = order.Size.Sub(size)

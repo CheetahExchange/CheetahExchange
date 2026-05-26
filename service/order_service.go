@@ -3,11 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/models/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/shopspring/decimal"
-	"log"
 )
 
 func PlaceOrder(userId int64, userLevel string, clientOid string, productId string, orderType models.OrderType,
@@ -17,21 +18,24 @@ func PlaceOrder(userId int64, userLevel string, clientOid string, productId stri
 		return nil, err
 	}
 	if product == nil {
-		return nil, errors.New(fmt.Sprintf("product not found: %v", productId))
+		return nil, fmt.Errorf("product not found: %v", productId)
 	}
 
 	feeRate, err := GetFeeRateByUserLevel(userLevel)
 	if err != nil {
 		return nil, err
 	}
+
 	if feeRate == nil {
-		return nil, errors.New(fmt.Sprintf("feeRate not found: %v", userLevel))
+		return nil, fmt.Errorf("feeRate not found: %v", userLevel)
 	}
+
 	if feeRate.MakerFeeRatio.LessThan(decimal.Zero) || feeRate.MakerFeeRatio.GreaterThanOrEqual(decimal.NewFromInt(1)) {
-		return nil, errors.New(fmt.Sprintf("invalid feeRate.MakerFeeRatio"))
+		return nil, fmt.Errorf("invalid feeRate.MakerFeeRatio")
 	}
+
 	if feeRate.TakerFeeRatio.LessThan(decimal.Zero) || feeRate.TakerFeeRatio.GreaterThanOrEqual(decimal.NewFromInt(1)) {
-		return nil, errors.New(fmt.Sprintf("invalid feeRate.TakerFeeRatio"))
+		return nil, fmt.Errorf("invalid feeRate.TakerFeeRatio")
 	}
 
 	if orderType == models.OrderTypeLimit {
