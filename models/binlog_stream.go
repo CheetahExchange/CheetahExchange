@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/CheetahExchange/CheetahExchange/conf"
 	"github.com/CheetahExchange/CheetahExchange/utils"
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/go-redis/redis/v8"
 	"github.com/shopspring/decimal"
 	"github.com/siddontang/go-log/log"
-	"reflect"
-	"time"
 )
 
 type BinLogStream struct {
@@ -88,8 +90,8 @@ func NewBinLogStream() *BinLogStream {
 }
 
 func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
-	switch e.Table.Name {
-	case "g_order":
+	switch {
+	case strings.HasPrefix(e.Table.Name, "g_order"):
 		if e.Action == "delete" {
 			return nil
 		}
@@ -108,7 +110,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 			log.Error(ret.Err())
 		}
 
-	case "g_account":
+	case e.Table.Name == "g_account":
 		var n = 0
 		if e.Action == "update" {
 			n = 1
@@ -123,7 +125,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 			log.Error(ret.Err())
 		}
 
-	case "g_trade":
+	case e.Table.Name == "g_trade":
 		if e.Action == "delete" {
 			return nil
 		}
@@ -142,7 +144,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 			log.Error(ret.Err())
 		}
 
-	case "g_fill":
+	case e.Table.Name == "g_fill":
 		if e.Action == "delete" || e.Action == "update" {
 			return nil
 		}
@@ -156,7 +158,7 @@ func (s *BinLogStream) OnRow(e *canal.RowsEvent) error {
 			log.Error(ret.Err())
 		}
 
-	case "g_bill":
+	case e.Table.Name == "g_bill":
 		if e.Action == "delete" || e.Action == "update" {
 			return nil
 		}
