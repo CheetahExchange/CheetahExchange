@@ -4,12 +4,32 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/models/mysql"
+	"github.com/bwmarrin/snowflake"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/shopspring/decimal"
 )
+
+var (
+	tableNodes    []*snowflake.Node
+	tableNodeOnce sync.Once
+)
+
+func GetTableNodeByUserId(userId int64) *snowflake.Node {
+	tableNodeOnce.Do(func() {
+		for i := 0; i < models.TableOrderSplitCount; i++ {
+			node, err := snowflake.NewNode(int64(i))
+			if err != nil {
+				panic(err)
+			}
+			tableNodes = append(tableNodes, node)
+		}
+	})
+	return tableNodes[userId%models.TableOrderSplitCount]
+}
 
 func PlaceOrder(userId int64, userLevel string, clientOid string, productId string, orderType models.OrderType,
 	timeInForce models.TimeInForceType, side models.Side, size, price, funds decimal.Decimal) (*models.Order, error) {
@@ -102,6 +122,13 @@ func PlaceOrder(userId int64, userLevel string, clientOid string, productId stri
 	err = HoldBalance(db, userId, holdCurrency, holdSize, models.BillTypeTrade)
 	if err != nil {
 		return nil, err
+	}
+
+	node := GetTableNodeByUserId(userId)
+	order.Id = node.Generate().Int64()
+
+	if mysql.GetTableIndexByOrderId(order.Id) != mysql.GetTableIndexByUserId(userId) {
+		panic("shard index mismatch: orderId and userId route to different tables")
 	}
 
 	err = db.AddOrder(order)

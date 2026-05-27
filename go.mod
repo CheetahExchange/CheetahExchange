@@ -3,6 +3,7 @@ module github.com/CheetahExchange/CheetahExchange
 go 1.25.0
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/emirpasic/gods v1.12.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.5.0

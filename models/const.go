@@ -7,3 +7,7 @@ const (
 	TopicFill    = "g_fill"
 	TopicBill    = "g_bill"
 )
+
+const (
+	TableOrderSplitCount = 128
+)

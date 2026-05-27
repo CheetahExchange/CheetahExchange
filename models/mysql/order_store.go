@@ -1,14 +1,26 @@
 package mysql
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/jinzhu/gorm"
-	"time"
 )
+
+func GetTableIndexByUserId(userId int64) int {
+	return int(userId % models.TableOrderSplitCount)
+}
+
+func GetTableIndexByOrderId(orderId int64) int {
+	// return int((orderId >> 12) % (1 << 10))
+	return int((orderId >> 12) % int64(models.TableOrderSplitCount))
+}
 
 func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Table("g_order").Where("id =?", orderId).Scan(&order).Error
+	table := fmt.Sprintf("g_order_%d", GetTableIndexByOrderId(orderId))
+	err := s.db.Table(table).Where("id =?", orderId).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -17,7 +29,8 @@ func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
 
 func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Table("g_order").Where("user_id =?", userId).Where("client_oid =?", clientOid).Scan(&order).Error
+	table := fmt.Sprintf("g_order_%d", GetTableIndexByUserId(userId))
+	err := s.db.Table(table).Where("user_id =?", userId).Where("client_oid =?", clientOid).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -26,7 +39,8 @@ func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Ord
 
 func (s *Store) GetOrderByIdForUpdate(orderId int64) (*models.Order, error) {
 	var order models.Order
-	err := s.db.Raw("SELECT * FROM g_order WHERE id =? FOR UPDATE", orderId).Scan(&order).Error
+	table := fmt.Sprintf("g_order_%d", GetTableIndexByOrderId(orderId))
+	err := s.db.Table(table).Raw("SELECT * FROM ? WHERE id =? FOR UPDATE", table, orderId).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -35,7 +49,8 @@ func (s *Store) GetOrderByIdForUpdate(orderId int64) (*models.Order, error) {
 
 func (s *Store) GetOrdersByUserId(userId int64, statuses []models.OrderStatus, side *models.Side, productId string,
 	beforeId, afterId int64, limit int) ([]*models.Order, error) {
-	db := s.db.Table("g_order").Where("user_id =?", userId)
+	table := fmt.Sprintf("g_order_%d", GetTableIndexByUserId(userId))
+	db := s.db.Table(table).Where("user_id =?", userId)
 
 	if len(statuses) != 0 {
 		db = db.Where("status IN (?)", statuses)
@@ -70,16 +85,19 @@ func (s *Store) GetOrdersByUserId(userId int64, statuses []models.OrderStatus, s
 
 func (s *Store) AddOrder(order *models.Order) error {
 	order.CreatedAt = time.Now()
-	return s.db.Create(order).Error
+	table := fmt.Sprintf("g_order_%d", GetTableIndexByUserId(order.UserId))
+	return s.db.Table(table).Create(order).Error
 }
 
 func (s *Store) UpdateOrder(order *models.Order) error {
 	order.UpdatedAt = time.Now()
-	return s.db.Save(order).Error
+	table := fmt.Sprintf("g_order_%d", GetTableIndexByUserId(order.UserId))
+	return s.db.Table(table).Save(order).Error
 }
 
 func (s *Store) UpdateOrderStatus(orderId int64, oldStatus, newStatus models.OrderStatus) (bool, error) {
-	ret := s.db.Table("g_order").Where("id =? AND status =?", orderId, oldStatus).
+	table := fmt.Sprintf("g_order_%d", GetTableIndexByOrderId(orderId))
+	ret := s.db.Table(table).Where("id =? AND status =?", orderId, oldStatus).
 		Updates(models.Order{Status: newStatus, UpdatedAt: time.Now()})
 	if ret.Error != nil {
 		return false, ret.Error

@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/CheetahExchange/CheetahExchange/models"
+	"github.com/CheetahExchange/CheetahExchange/models/mysql"
 	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/shopspring/decimal"
 	"github.com/siddontang/go-log/log"
@@ -29,7 +30,7 @@ type orderBook struct {
 
 	// to prevent the order from being submitted to the order book repeatedly,
 	// a sliding window de duplication strategy is adopted.
-	orderIdWindow *Window
+	orderIdWindows []*Window
 }
 
 type orderBookSnapshot struct {
@@ -46,7 +47,7 @@ type orderBookSnapshot struct {
 	LogSeq int64
 
 	// state of de duplication window
-	OrderIdWindow Window
+	OrderIdWindows []*Window
 }
 
 type priceOrderIdKey struct {
@@ -65,9 +66,12 @@ func NewOrderBook(product *models.Product) *orderBook {
 	}
 
 	orderBook := &orderBook{
-		product:       product,
-		depths:        map[models.Side]*depth{models.SideBuy: bids, models.SideSell: asks},
-		orderIdWindow: newWindow(0, orderIdWindowCap),
+		product:        product,
+		depths:         map[models.Side]*depth{models.SideBuy: bids, models.SideSell: asks},
+		orderIdWindows: make([]*Window, 0),
+	}
+	for i := 0; i < models.TableOrderSplitCount; i++ {
+		orderBook.orderIdWindows = append(orderBook.orderIdWindows, newWindow(0, orderIdWindowCap))
 	}
 	return orderBook
 }
@@ -183,7 +187,8 @@ func (o *orderBook) IsOrderWillFullMatch(order *models.Order) bool {
 
 func (o *orderBook) ApplyOrder(order *models.Order) (logs []Log) {
 	// prevent orders from being submitted repeatedly to the matching engine
-	err := o.orderIdWindow.put(order.Id)
+	idx := mysql.GetTableIndexByOrderId(order.Id)
+	err := o.orderIdWindows[idx].put(order.Id)
 	if err != nil {
 		log.Error(err)
 		return logs
@@ -293,7 +298,8 @@ func (o *orderBook) ApplyOrder(order *models.Order) (logs []Log) {
 }
 
 func (o *orderBook) CancelOrder(order *models.Order) (logs []Log) {
-	_ = o.orderIdWindow.put(order.Id)
+	idx := mysql.GetTableIndexByOrderId(order.Id)
+	_ = o.orderIdWindows[idx].put(order.Id)
 
 	bookOrder, found := o.depths[order.Side].orders[order.Id]
 	if !found {
@@ -312,7 +318,8 @@ func (o *orderBook) CancelOrder(order *models.Order) (logs []Log) {
 }
 
 func (o *orderBook) NullifyOrder(order *models.Order) (logs []Log) {
-	_ = o.orderIdWindow.put(order.Id)
+	idx := mysql.GetTableIndexByOrderId(order.Id)
+	_ = o.orderIdWindows[idx].put(order.Id)
 
 	bookOrder := newBookOrder(order)
 	doneLog := newDoneLog(o.nextLogSeq(), o.product.Id, bookOrder, order.Size, models.DoneReasonCancelled)
@@ -321,10 +328,10 @@ func (o *orderBook) NullifyOrder(order *models.Order) (logs []Log) {
 
 func (o *orderBook) Snapshot() orderBookSnapshot {
 	snapshot := orderBookSnapshot{
-		Orders:        make([]BookOrder, len(o.depths[models.SideSell].orders)+len(o.depths[models.SideBuy].orders)),
-		LogSeq:        o.logSeq,
-		TradeSeq:      o.tradeSeq,
-		OrderIdWindow: *o.orderIdWindow,
+		Orders:         make([]BookOrder, len(o.depths[models.SideSell].orders)+len(o.depths[models.SideBuy].orders)),
+		LogSeq:         o.logSeq,
+		TradeSeq:       o.tradeSeq,
+		OrderIdWindows: o.orderIdWindows,
 	}
 
 	i := 0
@@ -343,9 +350,15 @@ func (o *orderBook) Snapshot() orderBookSnapshot {
 func (o *orderBook) Restore(snapshot *orderBookSnapshot) {
 	o.logSeq = snapshot.LogSeq
 	o.tradeSeq = snapshot.TradeSeq
-	o.orderIdWindow = &snapshot.OrderIdWindow
-	if o.orderIdWindow.Cap == 0 {
-		o.orderIdWindow = newWindow(0, orderIdWindowCap)
+	o.orderIdWindows = snapshot.OrderIdWindows
+	// if o.orderIdWindows[0].Cap == 0 {
+	// 	o.orderIdWindows[0] = newWindow(0, orderIdWindowCap)
+	// }
+	if len(o.orderIdWindows) != models.TableOrderSplitCount {
+		o.orderIdWindows = make([]*Window, 0)
+		for i := 0; i < models.TableOrderSplitCount; i++ {
+			o.orderIdWindows = append(o.orderIdWindows, newWindow(0, orderIdWindowCap))
+		}
 	}
 
 	for _, order := range snapshot.Orders {

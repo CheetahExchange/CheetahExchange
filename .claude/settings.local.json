@@ -9,7 +9,8 @@
       "Bash(sed -i 's/Price       float64 `json:\"price\"`/Price       string `json:\"price\"`/' \"e:/ai_code/CheetahExchange/rest/vo.go\")",
       "Bash(go env *)",
       "Bash(ls \"C:/Users/mutalisk/go/pkg/mod/github.com/golang-jwt/\" 2>&1)",
-      "Read(//c/Users/mutalisk/go/pkg/mod/github.com/golang-jwt/**)"
+      "Read(//c/Users/mutalisk/go/pkg/mod/github.com/golang-jwt/**)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }
