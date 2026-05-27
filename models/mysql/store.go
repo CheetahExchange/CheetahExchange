@@ -57,7 +57,6 @@ func initDb() error {
 	if cfg.DataSource.EnableAutoMigrate {
 		var tables = []interface{}{
 			&models.Account{},
-			&models.Order{},
 			&models.Product{},
 			&models.Trade{},
 			&models.Fill{},
