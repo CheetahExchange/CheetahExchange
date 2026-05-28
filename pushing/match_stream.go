@@ -52,8 +52,8 @@ func (s *MatchStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 		ProductId:    log.ProductId,
 		Price:        log.Price.String(),
 		Side:         log.Side.String(),
-		MakerOrderId: utils.I64ToA(log.MakerOrderId),
-		TakerOrderId: utils.I64ToA(log.TakerOrderId),
+		MakerOrderId: utils.U64ToA(log.MakerOrderId),
+		TakerOrderId: utils.U64ToA(log.TakerOrderId),
 		Size:         log.Size.String(),
 	})
 }

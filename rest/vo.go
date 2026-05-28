@@ -165,7 +165,7 @@ func newTransactionVo() *transactionVo {
 func newTradeVo(trade *models.Trade) *tradeVo {
 	return &tradeVo{
 		Time:     trade.Time.Format(time.RFC3339),
-		Id:       utils.I64ToA(trade.Id),
+		Id:       utils.U64ToA(trade.Id),
 		TradeSeq: utils.I64ToA(trade.TradeSeq),
 		Price:    trade.Price.String(),
 		Size:     trade.Size.String(),
@@ -188,7 +188,7 @@ func newProductVo(product *models.Product) *ProductVo {
 
 func newOrderVo(order *models.Order) *orderVo {
 	return &orderVo{
-		Id:            utils.I64ToA(order.Id),
+		Id:            utils.U64ToA(order.Id),
 		Price:         order.Price.String(),
 		Size:          order.Size.String(),
 		Funds:         order.ExecutedValue.String(),

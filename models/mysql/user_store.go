@@ -15,7 +15,7 @@ func (s *Store) GetUserByEmail(email string) (*models.User, error) {
 	return &user, err
 }
 
-func (s *Store) GetUserById(id int64) (*models.User, error) {
+func (s *Store) GetUserById(id uint64) (*models.User, error) {
 	var user models.User
 	err := s.db.Table("g_user").Where("id =?", id).Scan(&user).Error
 	if err == gorm.ErrRecordNotFound {

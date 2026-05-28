@@ -123,7 +123,7 @@ const (
 )
 
 type User struct {
-	Id           int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	Id           uint64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	UserId       string
@@ -133,20 +133,20 @@ type User struct {
 }
 
 type Account struct {
-	Id        int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	Id        uint64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	UserId    int64           `gorm:"column:user_id;unique_index:idx_uid_currency"`
+	UserId    uint64          `gorm:"column:user_id;unique_index:idx_uid_currency"`
 	Currency  string          `gorm:"column:currency;unique_index:idx_uid_currency"`
 	Hold      decimal.Decimal `gorm:"column:hold" sql:"type:decimal(32,16);"`
 	Available decimal.Decimal `gorm:"column:available" sql:"type:decimal(32,16);"`
 }
 
 type Bill struct {
-	Id        int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	Id        uint64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	UserId    int64
+	UserId    uint64
 	Currency  string
 	Available decimal.Decimal `sql:"type:decimal(32,16);"`
 	Hold      decimal.Decimal `sql:"type:decimal(32,16);"`
@@ -171,11 +171,11 @@ type Product struct {
 }
 
 type Order struct {
-	Id            int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	Id            uint64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	ProductId     string
-	UserId        int64
+	UserId        uint64
 	ClientOid     string
 	Size          decimal.Decimal `sql:"type:decimal(32,16);"`
 	Funds         decimal.Decimal `sql:"type:decimal(32,16);"`
@@ -193,12 +193,12 @@ type Order struct {
 }
 
 type Fill struct {
-	Id         int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	Id         uint64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	TradeSeq   int64
-	OrderId    int64 `gorm:"unique_index:o_m"`
-	MessageSeq int64 `gorm:"unique_index:o_m"`
+	OrderId    uint64 `gorm:"unique_index:o_m"`
+	MessageSeq int64  `gorm:"unique_index:o_m"`
 	ProductId  string
 	Size       decimal.Decimal `sql:"type:decimal(32,16);"`
 	Price      decimal.Decimal `sql:"type:decimal(32,16);"`
@@ -214,15 +214,15 @@ type Fill struct {
 }
 
 type Trade struct {
-	Id           int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	Id           uint64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	ProductId    string
 	TradeSeq     int64
-	TakerOrderId int64
-	TakerUserId  int64
-	MakerOrderId int64
-	MakerUserId  int64
+	TakerOrderId uint64
+	TakerUserId  uint64
+	MakerOrderId uint64
+	MakerUserId  uint64
 	Price        decimal.Decimal `sql:"type:decimal(32,16);"`
 	Size         decimal.Decimal `sql:"type:decimal(32,16);"`
 	Side         Side
@@ -256,10 +256,10 @@ type Config struct {
 }
 
 type Transaction struct {
-	Id          int64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
+	Id          uint64 `gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	UserId      int64
+	UserId      uint64
 	Currency    string
 	BlockNum    int
 	ConfirmNum  int

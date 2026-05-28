@@ -52,17 +52,17 @@ type orderBookSnapshot struct {
 
 type priceOrderIdKey struct {
 	price   decimal.Decimal
-	orderId int64
+	orderId uint64
 }
 
 func NewOrderBook(product *models.Product) *orderBook {
 	asks := &depth{
 		queue:  treemap.NewWith(priceOrderIdKeyAscComparator),
-		orders: map[int64]*BookOrder{},
+		orders: map[uint64]*BookOrder{},
 	}
 	bids := &depth{
 		queue:  treemap.NewWith(priceOrderIdKeyDescComparator),
-		orders: map[int64]*BookOrder{},
+		orders: map[uint64]*BookOrder{},
 	}
 
 	orderBook := &orderBook{
@@ -97,7 +97,7 @@ func (o *orderBook) IsOrderWillNotMatch(order *models.Order) bool {
 			return true
 		}
 
-		makerOrder := makerDepth.orders[v.(int64)]
+		makerOrder := makerDepth.orders[v.(uint64)]
 		if takerOrder.Price.LessThan(makerOrder.Price) {
 			return true
 		}
@@ -107,7 +107,7 @@ func (o *orderBook) IsOrderWillNotMatch(order *models.Order) bool {
 			return true
 		}
 
-		makerOrder := makerDepth.orders[v.(int64)]
+		makerOrder := makerDepth.orders[v.(uint64)]
 		if takerOrder.Price.GreaterThan(makerOrder.Price) {
 			return true
 		}
@@ -131,7 +131,7 @@ func (o *orderBook) IsOrderWillFullMatch(order *models.Order) bool {
 
 	makerDepth := o.depths[takerOrder.Side.Opposite()]
 	for itr := makerDepth.queue.Iterator(); itr.Next(); {
-		makerOrder := makerDepth.orders[itr.Value().(int64)]
+		makerOrder := makerDepth.orders[itr.Value().(uint64)]
 
 		// check whether there is price crossing between the taker and the maker
 		if (takerOrder.Side == models.SideBuy && takerOrder.Price.LessThan(makerOrder.Price)) ||
@@ -208,7 +208,7 @@ func (o *orderBook) ApplyOrder(order *models.Order) (logs []Log) {
 
 	makerDepth := o.depths[takerOrder.Side.Opposite()]
 	for itr := makerDepth.queue.Iterator(); itr.Next(); {
-		makerOrder := makerDepth.orders[itr.Value().(int64)]
+		makerOrder := makerDepth.orders[itr.Value().(uint64)]
 
 		// check whether there is price crossing between the taker and the maker
 		if (takerOrder.Side == models.SideBuy && takerOrder.Price.LessThan(makerOrder.Price)) ||
@@ -378,7 +378,7 @@ func (o *orderBook) nextTradeSeq() int64 {
 
 type depth struct {
 	// all orders
-	orders map[int64]*BookOrder
+	orders map[uint64]*BookOrder
 
 	// price first, time first order queue for order match
 	// priceOrderIdKey -> orderId
@@ -390,7 +390,7 @@ func (d *depth) add(order BookOrder) {
 	d.queue.Put(&priceOrderIdKey{order.Price, order.OrderId}, order.OrderId)
 }
 
-func (d *depth) decrSize(orderId int64, size decimal.Decimal) error {
+func (d *depth) decrSize(orderId uint64, size decimal.Decimal) error {
 	order, found := d.orders[orderId]
 	if !found {
 		return fmt.Errorf("order %v not found on book", orderId)
@@ -410,8 +410,8 @@ func (d *depth) decrSize(orderId int64, size decimal.Decimal) error {
 }
 
 type BookOrder struct {
-	OrderId     int64
-	UserId      int64
+	OrderId     uint64
+	UserId      uint64
 	Size        decimal.Decimal
 	Funds       decimal.Decimal
 	Price       decimal.Decimal
@@ -442,14 +442,12 @@ func priceOrderIdKeyAscComparator(a, b interface{}) int {
 		return x
 	}
 
-	y := aAsserted.orderId - bAsserted.orderId
-	if y == 0 {
-		return 0
-	} else if y > 0 {
-		return 1
-	} else {
+	if aAsserted.orderId < bAsserted.orderId {
 		return -1
+	} else if aAsserted.orderId > bAsserted.orderId {
+		return 1
 	}
+	return 0
 }
 
 func priceOrderIdKeyDescComparator(a, b interface{}) int {
@@ -461,12 +459,10 @@ func priceOrderIdKeyDescComparator(a, b interface{}) int {
 		return -x
 	}
 
-	y := aAsserted.orderId - bAsserted.orderId
-	if y == 0 {
-		return 0
-	} else if y > 0 {
-		return 1
-	} else {
+	if aAsserted.orderId < bAsserted.orderId {
 		return -1
+	} else if aAsserted.orderId > bAsserted.orderId {
+		return 1
 	}
+	return 0
 }

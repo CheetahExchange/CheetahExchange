@@ -8,17 +8,17 @@ type Store interface {
 	GetConfigs() ([]*Config, error)
 
 	GetUserByEmail(email string) (*User, error)
-	GetUserById(id int64) (*User, error)
+	GetUserById(id uint64) (*User, error)
 	AddUser(user *User) error
 	UpdateUser(user *User) error
 
-	GetAccount(userId int64, currency string) (*Account, error)
-	GetAccountsByUserId(userId int64) ([]*Account, error)
-	GetAccountForUpdate(userId int64, currency string) (*Account, error)
+	GetAccount(userId uint64, currency string) (*Account, error)
+	GetAccountsByUserId(userId uint64) ([]*Account, error)
+	GetAccountForUpdate(userId uint64, currency string) (*Account, error)
 	AddAccount(account *Account) error
 	UpdateAccount(account *Account) error
 
-	GetUnsettledBillsByUserId(userId int64, currency string) ([]*Bill, error)
+	GetUnsettledBillsByUserId(userId uint64, currency string) ([]*Bill, error)
 	GetUnsettledBills() ([]*Bill, error)
 	AddBills(bills []*Bill) error
 	UpdateBill(bill *Bill) error
@@ -26,17 +26,17 @@ type Store interface {
 	GetProductById(id string) (*Product, error)
 	GetProducts() ([]*Product, error)
 
-	GetOrderById(orderId int64) (*Order, error)
-	GetOrderByClientOid(userId int64, clientOid string) (*Order, error)
-	GetOrderByIdForUpdate(orderId int64) (*Order, error)
-	GetOrdersByUserId(userId int64, statuses []OrderStatus, side *Side, productId string,
+	GetOrderById(orderId uint64) (*Order, error)
+	GetOrderByClientOid(userId uint64, clientOid string) (*Order, error)
+	GetOrderByIdForUpdate(orderId uint64) (*Order, error)
+	GetOrdersByUserId(userId uint64, statuses []OrderStatus, side *Side, productId string,
 		beforeId, afterId int64, limit int) ([]*Order, error)
 	AddOrder(order *Order) error
 	UpdateOrder(order *Order) error
-	UpdateOrderStatus(orderId int64, oldStatus, newStatus OrderStatus) (bool, error)
+	UpdateOrderStatus(orderId uint64, oldStatus, newStatus OrderStatus) (bool, error)
 
 	GetLastFillByProductId(productId string) (*Fill, error)
-	GetUnsettledFillsByOrderId(orderId int64) ([]*Fill, error)
+	GetUnsettledFillsByOrderId(orderId uint64) ([]*Fill, error)
 	GetUnsettledFills(count int32) ([]*Fill, error)
 	UpdateFill(fill *Fill) error
 	AddFills(fills []*Fill) error

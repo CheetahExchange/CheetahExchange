@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (s *Store) GetAccount(userId int64, currency string) (*models.Account, error) {
+func (s *Store) GetAccount(userId uint64, currency string) (*models.Account, error) {
 	var account models.Account
 	err := s.db.Table("g_account").Where("user_id =?", userId).Where("currency =?", currency).Scan(&account).Error
 	if err == gorm.ErrRecordNotFound {
@@ -15,14 +15,14 @@ func (s *Store) GetAccount(userId int64, currency string) (*models.Account, erro
 	return &account, err
 }
 
-func (s *Store) GetAccountsByUserId(userId int64) ([]*models.Account, error) {
+func (s *Store) GetAccountsByUserId(userId uint64) ([]*models.Account, error) {
 	var accounts []*models.Account
 	db := s.db.Table("g_account").Where("user_id =?", userId)
 	err := db.Find(&accounts).Error
 	return accounts, err
 }
 
-func (s *Store) GetAccountForUpdate(userId int64, currency string) (*models.Account, error) {
+func (s *Store) GetAccountForUpdate(userId uint64, currency string) (*models.Account, error) {
 	var account models.Account
 	err := s.db.Raw("SELECT * FROM g_account WHERE user_id =? AND currency =? FOR UPDATE", userId, currency).Scan(&account).Error
 	if err == gorm.ErrRecordNotFound {

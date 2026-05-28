@@ -61,7 +61,7 @@ func (s *redisStream) Start() {
 					UserId:        order.UserId,
 					Type:          "order",
 					Sequence:      0,
-					Id:            utils.I64ToA(order.Id),
+					Id:            utils.U64ToA(order.Id),
 					Price:         order.Price.String(),
 					Size:          order.Size.String(),
 					Funds:         "0",
@@ -100,7 +100,7 @@ func (s *redisStream) Start() {
 				s.sub.publish(ChannelFunds.FormatWithUserId(account.UserId), &FundsMessage{
 					Type:      "funds",
 					Sequence:  0,
-					UserId:    utils.I64ToA(account.UserId),
+					UserId:    utils.U64ToA(account.UserId),
 					Currency:  account.Currency,
 					Hold:      account.Hold.String(),
 					Available: account.Available.String(),
@@ -136,8 +136,8 @@ func (s *redisStream) Start() {
 					ProductId:    trade.ProductId,
 					Price:        trade.Price.String(),
 					Size:         trade.Size.String(),
-					MakerOrderId: utils.I64ToA(trade.MakerOrderId),
-					TakerOrderId: utils.I64ToA(trade.TakerOrderId),
+					MakerOrderId: utils.U64ToA(trade.MakerOrderId),
+					TakerOrderId: utils.U64ToA(trade.TakerOrderId),
 					Side:         trade.Side.String(),
 				})
 
@@ -148,8 +148,8 @@ func (s *redisStream) Start() {
 					ProductId:    trade.ProductId,
 					Price:        trade.Price.String(),
 					Size:         trade.Size.String(),
-					MakerOrderId: utils.I64ToA(trade.MakerOrderId),
-					TakerOrderId: utils.I64ToA(trade.TakerOrderId),
+					MakerOrderId: utils.U64ToA(trade.MakerOrderId),
+					TakerOrderId: utils.U64ToA(trade.TakerOrderId),
 					Side:         trade.Side.String(),
 				})
 			}

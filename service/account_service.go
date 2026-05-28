@@ -9,7 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func ExecuteBill(userId int64, currency string) error {
+func ExecuteBill(userId uint64, currency string) error {
 	tx, err := mysql.SharedStore().BeginTx()
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func ExecuteBill(userId int64, currency string) error {
 	return nil
 }
 
-func HoldBalance(db models.Store, userId int64, currency string, size decimal.Decimal, billType models.BillType) error {
+func HoldBalance(db models.Store, userId uint64, currency string, size decimal.Decimal, billType models.BillType) error {
 	if size.LessThanOrEqual(decimal.Zero) {
 		return errors.New("size less than 0")
 	}
@@ -118,7 +118,7 @@ func HoldBalance(db models.Store, userId int64, currency string, size decimal.De
 	return nil
 }
 
-func HasEnoughBalance(userId int64, currency string, size decimal.Decimal) (bool, error) {
+func HasEnoughBalance(userId uint64, currency string, size decimal.Decimal) (bool, error) {
 	account, err := GetAccount(userId, currency)
 	if err != nil {
 		return false, err
@@ -129,15 +129,15 @@ func HasEnoughBalance(userId int64, currency string, size decimal.Decimal) (bool
 	return account.Available.GreaterThanOrEqual(size), nil
 }
 
-func GetAccount(userId int64, currency string) (*models.Account, error) {
+func GetAccount(userId uint64, currency string) (*models.Account, error) {
 	return mysql.SharedStore().GetAccount(userId, currency)
 }
 
-func GetAccountsByUserId(userId int64) ([]*models.Account, error) {
+func GetAccountsByUserId(userId uint64) ([]*models.Account, error) {
 	return mysql.SharedStore().GetAccountsByUserId(userId)
 }
 
-func AddDelayBill(store models.Store, userId int64, currency string, available, hold decimal.Decimal, billType models.BillType, notes string) (*models.Bill, error) {
+func AddDelayBill(store models.Store, userId uint64, currency string, available, hold decimal.Decimal, billType models.BillType, notes string) (*models.Bill, error) {
 	bill := &models.Bill{
 		UserId:    userId,
 		Currency:  currency,

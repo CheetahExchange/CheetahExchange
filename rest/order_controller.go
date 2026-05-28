@@ -128,7 +128,7 @@ func CancelOrder(ctx *gin.Context) {
 		clientOid := strings.Split(rawOrderId, ":")[1]
 		order, err = service.GetOrderByClientOid(GetCurrentUser(ctx).Id, clientOid)
 	} else {
-		orderId, _ := utils.AToInt64(rawOrderId)
+		orderId, _ := utils.AToUint64(rawOrderId)
 		order, err = service.GetOrderById(orderId)
 	}
 
@@ -223,13 +223,13 @@ func GetOrders(ctx *gin.Context) {
 		orderVos = append(orderVos, newOrderVo(order))
 	}
 
-	var newBefore, newAfter int64 = 0, 0
+	var newBefore, newAfter uint64 = 0, 0
 	if len(orders) > 0 {
 		newBefore = orders[0].Id
 		newAfter = orders[len(orders)-1].Id
 	}
-	ctx.Header("gbe-before", strconv.FormatInt(newBefore, 10))
-	ctx.Header("gbe-after", strconv.FormatInt(newAfter, 10))
+	ctx.Header("gbe-before", strconv.FormatUint(newBefore, 10))
+	ctx.Header("gbe-after", strconv.FormatUint(newAfter, 10))
 
 	ctx.JSON(http.StatusOK, orderVos)
 }

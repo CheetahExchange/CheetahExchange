@@ -18,7 +18,7 @@ func dataOrCopy(d []byte, c bool) []byte {
 	return data
 }
 
-func NewSlice(l int64) []byte {
+func NewSlice(l uint64) []byte {
 	remainder := l % 8
 	if remainder != 0 {
 		remainder = 1
@@ -26,11 +26,11 @@ func NewSlice(l int64) []byte {
 	return make([]byte, l/8+remainder)
 }
 
-func Get(m []byte, i int64) bool {
+func Get(m []byte, i uint64) bool {
 	return m[i/8]&tA[i%8] != 0
 }
 
-func Set(m []byte, i int64, v bool) {
+func Set(m []byte, i uint64, v bool) {
 	index := i / 8
 	bit := i % 8
 	if v {
@@ -40,18 +40,18 @@ func Set(m []byte, i int64, v bool) {
 	}
 }
 
-func GetBit(b byte, i int64) bool {
+func GetBit(b byte, i uint64) bool {
 	return b&tA[i] != 0
 }
 
-func SetBit(b byte, i int64, v bool) byte {
+func SetBit(b byte, i uint64, v bool) byte {
 	if v {
 		return b | tA[i]
 	}
 	return b & tB[i]
 }
 
-func SetBitRef(b *byte, i int64, v bool) {
+func SetBitRef(b *byte, i uint64, v bool) {
 	if v {
 		*b = *b | tA[i]
 	} else {
@@ -65,7 +65,7 @@ func Len(m []byte) int {
 
 type Bitmap []byte
 
-func New(l int64) Bitmap {
+func New(l uint64) Bitmap {
 	return NewSlice(l)
 }
 
@@ -73,11 +73,11 @@ func (b Bitmap) Len() int {
 	return Len(b)
 }
 
-func (b Bitmap) Get(i int64) bool {
+func (b Bitmap) Get(i uint64) bool {
 	return Get(b, i)
 }
 
-func (b Bitmap) Set(i int64, v bool) {
+func (b Bitmap) Set(i uint64, v bool) {
 	Set(b, i, v)
 }
 
@@ -86,13 +86,13 @@ func (b Bitmap) Data(copy bool) []byte {
 }
 
 type Window struct {
-	Min    int64
-	Max    int64
-	Cap    int64
+	Min    uint64
+	Max    uint64
+	Cap    uint64
 	Bitmap Bitmap
 }
 
-func newWindow(min, max int64) *Window {
+func newWindow(min, max uint64) *Window {
 	return &Window{
 		Min:    min,
 		Max:    max,
@@ -101,13 +101,13 @@ func newWindow(min, max int64) *Window {
 	}
 }
 
-func (w *Window) put(val int64) error {
+func (w *Window) put(val uint64) error {
 	if val < w.Min {
 		return fmt.Errorf("expired val %v, current Window [%v-%v)", val, w.Min, w.Max)
 	}
 	if val >= w.Max {
 		delta := val - w.Max + 1
-		var rangeDelta int64 = delta
+		var rangeDelta uint64 = delta
 		if rangeDelta > w.Cap {
 			rangeDelta = w.Cap
 		}
@@ -126,7 +126,7 @@ func (w *Window) put(val int64) error {
 	return nil
 }
 
-func (w *Window) contains(val int64) bool {
+func (w *Window) contains(val uint64) bool {
 	if val < w.Min || val >= w.Max {
 		return false
 	}

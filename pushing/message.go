@@ -5,11 +5,11 @@ import "fmt"
 type Level2Type string
 type Channel string
 
-func (t Channel) Format(productId string, userId int64) string {
+func (t Channel) Format(productId string, userId uint64) string {
 	return fmt.Sprintf("%v:%v:%v", t, productId, userId)
 }
 
-func (t Channel) FormatWithUserId(userId int64) string {
+func (t Channel) FormatWithUserId(userId uint64) string {
 	return fmt.Sprintf("%v:%v", t, userId)
 }
 
@@ -132,7 +132,7 @@ type FundsMessage struct {
 }
 
 type OrderMessage struct {
-	UserId        int64  `json:"userId"`
+	UserId        uint64 `json:"userId"`
 	Type          string `json:"type"`
 	Sequence      int64  `json:"sequence"`
 	Id            string `json:"id"`

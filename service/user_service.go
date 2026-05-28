@@ -69,7 +69,7 @@ func CheckToken(tokenStr string) (*models.User, error) {
 
 	switch v := userIdVal.(type) {
 	case float64:
-		return GetUserById(int64(v))
+		return GetUserById(uint64(v))
 	default:
 		return nil, errors.New("bad token")
 	}
@@ -91,7 +91,7 @@ func GetUserByEmail(email string) (*models.User, error) {
 	return mysql.SharedStore().GetUserByEmail(email)
 }
 
-func GetUserById(id int64) (*models.User, error) {
+func GetUserById(id uint64) (*models.User, error) {
 	return mysql.SharedStore().GetUserById(id)
 }
 

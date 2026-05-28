@@ -8,16 +8,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func GetTableIndexByUserId(userId int64) int {
+func GetTableIndexByUserId(userId uint64) int {
 	return int(userId % models.TableOrderSplitCount)
 }
 
-func GetTableIndexByOrderId(orderId int64) int {
-	// return int((orderId >> 12) % (1 << 10))
-	return int((orderId >> 12) % int64(models.TableOrderSplitCount))
+func GetTableIndexByOrderId(orderId uint64) int {
+	return int((orderId >> 12) % uint64(models.TableOrderSplitCount))
 }
 
-func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
+func (s *Store) GetOrderById(orderId uint64) (*models.Order, error) {
 	var order models.Order
 	table := fmt.Sprintf("g_order_%d", GetTableIndexByOrderId(orderId))
 	err := s.db.Table(table).Where("id =?", orderId).Scan(&order).Error
@@ -27,7 +26,7 @@ func (s *Store) GetOrderById(orderId int64) (*models.Order, error) {
 	return &order, err
 }
 
-func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Order, error) {
+func (s *Store) GetOrderByClientOid(userId uint64, clientOid string) (*models.Order, error) {
 	var order models.Order
 	table := fmt.Sprintf("g_order_%d", GetTableIndexByUserId(userId))
 	err := s.db.Table(table).Where("user_id =?", userId).Where("client_oid =?", clientOid).Scan(&order).Error
@@ -37,7 +36,7 @@ func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Ord
 	return &order, err
 }
 
-func (s *Store) GetOrderByIdForUpdate(orderId int64) (*models.Order, error) {
+func (s *Store) GetOrderByIdForUpdate(orderId uint64) (*models.Order, error) {
 	var order models.Order
 	table := fmt.Sprintf("g_order_%d", GetTableIndexByOrderId(orderId))
 	err := s.db.Raw(fmt.Sprintf("SELECT * FROM %s WHERE id =? FOR UPDATE", table), orderId).Scan(&order).Error
@@ -47,7 +46,7 @@ func (s *Store) GetOrderByIdForUpdate(orderId int64) (*models.Order, error) {
 	return &order, err
 }
 
-func (s *Store) GetOrdersByUserId(userId int64, statuses []models.OrderStatus, side *models.Side, productId string,
+func (s *Store) GetOrdersByUserId(userId uint64, statuses []models.OrderStatus, side *models.Side, productId string,
 	beforeId, afterId int64, limit int) ([]*models.Order, error) {
 	table := fmt.Sprintf("g_order_%d", GetTableIndexByUserId(userId))
 	db := s.db.Table(table).Where("user_id =?", userId)
@@ -95,7 +94,7 @@ func (s *Store) UpdateOrder(order *models.Order) error {
 	return s.db.Table(table).Save(order).Error
 }
 
-func (s *Store) UpdateOrderStatus(orderId int64, oldStatus, newStatus models.OrderStatus) (bool, error) {
+func (s *Store) UpdateOrderStatus(orderId uint64, oldStatus, newStatus models.OrderStatus) (bool, error) {
 	table := fmt.Sprintf("g_order_%d", GetTableIndexByOrderId(orderId))
 	ret := s.db.Table(table).Where("id =? AND status =?", orderId, oldStatus).
 		Updates(models.Order{Status: newStatus, UpdatedAt: time.Now()})

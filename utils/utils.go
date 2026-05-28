@@ -30,12 +30,20 @@ func AToInt64(s string) (int64, error) {
 	return strconv.ParseInt(s, 10, 64)
 }
 
+func AToUint64(s string) (uint64, error) {
+	return strconv.ParseUint(s, 10, 64)
+}
+
 func F64ToA(f float64) string {
 	return strconv.FormatFloat(f, 'f', -1, 64)
 }
 
 func I64ToA(i int64) string {
 	return strconv.FormatInt(i, 10)
+}
+
+func U64ToA(i uint64) string {
+	return strconv.FormatUint(i, 10)
 }
 
 func Int32ToString(i int32) string {

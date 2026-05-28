@@ -251,7 +251,7 @@ func (c *Client) onSub(currencyIds []string, productIds []string, channels []str
 		return
 	}
 
-	var userId int64
+	var userId uint64
 	if user != nil {
 		userId = user.Id
 	}
@@ -340,7 +340,7 @@ func (c *Client) onUnSub(currencyIds []string, productIds []string, channels []s
 		return
 	}
 
-	var userId int64
+	var userId uint64
 	if user != nil {
 		userId = user.Id
 	}

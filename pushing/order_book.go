@@ -26,7 +26,7 @@ type orderBook struct {
 	logOffset int64
 	logSeq    int64
 	depths    map[models.Side]*treemap.Map
-	orders    map[int64]*matching.BookOrder
+	orders    map[uint64]*matching.BookOrder
 }
 
 type OrderBookLevel2Snapshot struct {
@@ -54,14 +54,14 @@ func newOrderBook(productId string) *orderBook {
 	b := &orderBook{
 		productId: productId,
 		depths:    map[models.Side]*treemap.Map{},
-		orders:    map[int64]*matching.BookOrder{},
+		orders:    map[uint64]*matching.BookOrder{},
 	}
 	b.depths[models.SideBuy] = treemap.NewWith(utils.DecimalDescComparator)
 	b.depths[models.SideSell] = treemap.NewWith(utils.DecimalAscComparator)
 	return b
 }
 
-func (s *orderBook) saveOrder(logOffset, logSeq int64, orderId int64, newSize, price decimal.Decimal,
+func (s *orderBook) saveOrder(logOffset, logSeq int64, orderId uint64, newSize, price decimal.Decimal,
 	side models.Side) *Level2Change {
 	if newSize.LessThan(decimal.Zero) {
 		panic(newSize)

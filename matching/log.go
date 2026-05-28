@@ -27,7 +27,7 @@ type Base struct {
 
 type ReceivedLog struct {
 	Base
-	OrderId   int64
+	OrderId   uint64
 	Size      decimal.Decimal
 	Price     decimal.Decimal
 	Side      models.Side
@@ -40,8 +40,8 @@ func (l *ReceivedLog) GetSeq() int64 {
 
 type OpenLog struct {
 	Base
-	OrderId       int64
-	UserId        int64
+	OrderId       uint64
+	UserId        uint64
 	RemainingSize decimal.Decimal
 	Price         decimal.Decimal
 	Side          models.Side
@@ -66,8 +66,8 @@ func (l *OpenLog) GetSeq() int64 {
 
 type DoneLog struct {
 	Base
-	OrderId       int64
-	UserId        int64
+	OrderId       uint64
+	UserId        uint64
 	Price         decimal.Decimal
 	RemainingSize decimal.Decimal
 	Reason        models.DoneReason
@@ -95,10 +95,10 @@ func (l *DoneLog) GetSeq() int64 {
 type MatchLog struct {
 	Base
 	TradeSeq         int64
-	TakerOrderId     int64
-	MakerOrderId     int64
-	TakerUserId      int64
-	MakerUserId      int64
+	TakerOrderId     uint64
+	MakerOrderId     uint64
+	TakerUserId      uint64
+	MakerUserId      uint64
 	Side             models.Side
 	Price            decimal.Decimal
 	Size             decimal.Decimal

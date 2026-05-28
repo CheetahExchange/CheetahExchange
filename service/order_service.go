@@ -18,7 +18,7 @@ var (
 	tableNodeOnce sync.Once
 )
 
-func GetTableNodeByUserId(userId int64) *snowflake.Node {
+func GetTableNodeByUserId(userId uint64) *snowflake.Node {
 	tableNodeOnce.Do(func() {
 		for i := 0; i < models.TableOrderSplitCount; i++ {
 			node, err := snowflake.NewNode(int64(i))
@@ -31,7 +31,7 @@ func GetTableNodeByUserId(userId int64) *snowflake.Node {
 	return tableNodes[userId%models.TableOrderSplitCount]
 }
 
-func PlaceOrder(userId int64, userLevel string, clientOid string, productId string, orderType models.OrderType,
+func PlaceOrder(userId uint64, userLevel string, clientOid string, productId string, orderType models.OrderType,
 	timeInForce models.TimeInForceType, side models.Side, size, price, funds decimal.Decimal) (*models.Order, error) {
 	product, err := GetProductById(productId)
 	if err != nil {
@@ -125,7 +125,7 @@ func PlaceOrder(userId int64, userLevel string, clientOid string, productId stri
 	}
 
 	node := GetTableNodeByUserId(userId)
-	order.Id = node.Generate().Int64()
+	order.Id = uint64(node.Generate().Int64())
 
 	if mysql.GetTableIndexByOrderId(order.Id) != mysql.GetTableIndexByUserId(userId) {
 		panic("shard index mismatch: orderId and userId route to different tables")
@@ -139,11 +139,11 @@ func PlaceOrder(userId int64, userLevel string, clientOid string, productId stri
 	return order, db.CommitTx()
 }
 
-func UpdateOrderStatus(orderId int64, oldStatus, newStatus models.OrderStatus) (bool, error) {
+func UpdateOrderStatus(orderId uint64, oldStatus, newStatus models.OrderStatus) (bool, error) {
 	return mysql.SharedStore().UpdateOrderStatus(orderId, oldStatus, newStatus)
 }
 
-func ExecuteFill(orderId int64) error {
+func ExecuteFill(orderId uint64) error {
 	// tx
 	db, err := mysql.SharedStore().BeginTx()
 	if err != nil {
@@ -324,15 +324,15 @@ func ExecuteFill(orderId int64) error {
 	return db.CommitTx()
 }
 
-func GetOrderById(orderId int64) (*models.Order, error) {
+func GetOrderById(orderId uint64) (*models.Order, error) {
 	return mysql.SharedStore().GetOrderById(orderId)
 }
 
-func GetOrderByClientOid(userId int64, clientOid string) (*models.Order, error) {
+func GetOrderByClientOid(userId uint64, clientOid string) (*models.Order, error) {
 	return mysql.SharedStore().GetOrderByClientOid(userId, clientOid)
 }
 
-func GetOrdersByUserId(userId int64, statuses []models.OrderStatus, side *models.Side, productId string,
+func GetOrdersByUserId(userId uint64, statuses []models.OrderStatus, side *models.Side, productId string,
 	beforeId, afterId int64, limit int) ([]*models.Order, error) {
 	return mysql.SharedStore().GetOrdersByUserId(userId, statuses, side, productId, beforeId, afterId, limit)
 }

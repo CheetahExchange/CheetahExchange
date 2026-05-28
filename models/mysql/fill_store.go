@@ -16,7 +16,7 @@ func (s *Store) GetLastFillByProductId(productId string) (*models.Fill, error) {
 	return &fill, err
 }
 
-func (s *Store) GetUnsettledFillsByOrderId(orderId int64) ([]*models.Fill, error) {
+func (s *Store) GetUnsettledFillsByOrderId(orderId uint64) ([]*models.Fill, error) {
 	db := s.db.Table("g_fill").Where("settled =?", 0).Where("order_id =?", orderId).
 		Order("id ASC").Limit(100)
 
