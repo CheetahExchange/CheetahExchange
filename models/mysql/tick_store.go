@@ -53,13 +53,13 @@ func (s *Store) AddTicks(ticks []*models.Tick) error {
 		return nil
 	}
 	var valueStrings []string
+	var args []interface{}
 	for _, tick := range ticks {
-		valueString := fmt.Sprintf("(NOW(),'%v',%v,%v,%v,%v,%v,%v,%v,%v,%v)",
-			tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
+		valueStrings = append(valueStrings, "(NOW(),?,?,?,?,?,?,?,?,?,?)")
+		args = append(args, tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
 			tick.Volume, tick.LogOffset, tick.LogSeq)
-		valueStrings = append(valueStrings, valueString)
 	}
 	sql := fmt.Sprintf("REPLACE INTO g_tick(created_at, product_id,granularity,time,open,low,high,close,"+
 		"volume,log_offset,log_seq) VALUES %s", strings.Join(valueStrings, ","))
-	return s.db.Exec(sql).Error
+	return s.db.Exec(sql, args...).Error
 }

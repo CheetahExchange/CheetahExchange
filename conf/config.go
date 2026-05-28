@@ -2,7 +2,7 @@ package conf
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"sync"
 )
 
@@ -47,7 +47,7 @@ var configOnce sync.Once
 
 func GetConfig() *Config {
 	configOnce.Do(func() {
-		bytes, err := ioutil.ReadFile("conf.json")
+		bytes, err := os.ReadFile("conf.json")
 		if err != nil {
 			panic(err)
 		}
