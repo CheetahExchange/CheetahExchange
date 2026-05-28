@@ -2,13 +2,14 @@ package pushing
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/CheetahExchange/CheetahExchange/matching"
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/service"
 	"github.com/shopspring/decimal"
 	logger "github.com/siddontang/go-log/log"
-	"sync"
-	"time"
 )
 
 const (
@@ -20,6 +21,17 @@ var (
 	lastTickers = sync.Map{}
 )
 
+type tickerStats struct {
+	Open24h   decimal.Decimal
+	Low24h    decimal.Decimal
+	High24h   decimal.Decimal
+	Volume24h decimal.Decimal
+	Volume30d decimal.Decimal
+	loaded    bool
+	lastSync  time.Time
+	mu        sync.RWMutex
+}
+
 type TickerStream struct {
 	productId       string
 	sub             *subscription
@@ -28,6 +40,7 @@ type TickerStream struct {
 	logReader       matching.LogReader
 	lastTickerTime  int64
 	lastCandlesTime int64
+	stats           *tickerStats
 }
 
 func newTickerStream(productId string, sub *subscription, logReader matching.LogReader) *TickerStream {
@@ -36,6 +49,7 @@ func newTickerStream(productId string, sub *subscription, logReader matching.Log
 		sub:            sub,
 		logReader:      logReader,
 		lastTickerTime: time.Now().Unix() - intervalSec,
+		stats:          &tickerStats{},
 	}
 	s.logReader.RegisterObserver(s)
 	return s
@@ -55,6 +69,8 @@ func (s *TickerStream) OnDoneLog(log *matching.DoneLog, offset int64) {
 }
 
 func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
+	s.updateTickerStats(log)
+
 	if (time.Now().Unix() - s.lastTickerTime) > intervalSec {
 		ticker, err := s.newTickerMessage(log)
 		if err != nil {
@@ -100,24 +116,68 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 	}
 }
 
-func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage, error) {
+func (s *TickerStream) loadTickerStats() {
 	ticks24h, err := service.GetTicksByProductId(s.productId, 1*60, 0, 0, 24)
 	if err != nil {
-		return nil, err
+		logger.Error(err)
+		return
 	}
-	tick24h := mergeTicks(ticks24h)
+	tick24h := mergeIntervalTicks(ticks24h, 24*3600)
 	if tick24h == nil {
 		tick24h = &models.Tick{}
 	}
 
 	ticks30d, err := service.GetTicksByProductId(s.productId, 24*60, 0, 0, 30)
 	if err != nil {
-		return nil, err
+		logger.Error(err)
+		return
 	}
-	tick30d := mergeTicks(ticks30d)
+	tick30d := mergeIntervalTicks(ticks30d, 30*86400)
 	if tick30d == nil {
 		tick30d = &models.Tick{}
 	}
+
+	s.stats.mu.Lock()
+	s.stats.Open24h = tick24h.Open
+	s.stats.Low24h = tick24h.Low
+	s.stats.High24h = tick24h.High
+	s.stats.Volume24h = tick24h.Volume
+	s.stats.Volume30d = tick30d.Volume
+	s.stats.loaded = true
+	s.stats.lastSync = time.Now()
+	s.stats.mu.Unlock()
+}
+
+func (s *TickerStream) updateTickerStats(log *matching.MatchLog) {
+	s.stats.mu.RLock()
+	loaded := s.stats.loaded
+	lastSync := s.stats.lastSync
+	s.stats.mu.RUnlock()
+
+	if !loaded {
+		s.loadTickerStats()
+		return
+	}
+
+	if time.Since(lastSync) > 5*time.Minute {
+		go s.loadTickerStats()
+	}
+
+	s.stats.mu.Lock()
+	if s.stats.Low24h.IsZero() || log.Price.LessThan(s.stats.Low24h) {
+		s.stats.Low24h = log.Price
+	}
+	if log.Price.GreaterThan(s.stats.High24h) {
+		s.stats.High24h = log.Price
+	}
+	s.stats.Volume24h = s.stats.Volume24h.Add(log.Size)
+	s.stats.Volume30d = s.stats.Volume30d.Add(log.Size)
+	s.stats.mu.Unlock()
+}
+
+func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage, error) {
+	s.stats.mu.RLock()
+	defer s.stats.mu.RUnlock()
 
 	return &TickerMessage{
 		Type:      "ticker",
@@ -128,10 +188,10 @@ func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage,
 		Price:     log.Price.String(),
 		Side:      log.Side.String(),
 		LastSize:  log.Size.String(),
-		Open24h:   tick24h.Open.String(),
-		Low24h:    tick24h.Low.String(),
-		Volume24h: tick24h.Volume.String(),
-		Volume30d: tick30d.Volume.String(),
+		Open24h:   s.stats.Open24h.String(),
+		Low24h:    s.stats.Low24h.String(),
+		Volume24h: s.stats.Volume24h.String(),
+		Volume30d: s.stats.Volume30d.String(),
 	}, nil
 }
 
@@ -148,10 +208,13 @@ func (s *TickerStream) newCandlesMessage(granularity int64, productId string, ti
 	}
 }
 
-func mergeTicks(ticks []*models.Tick) *models.Tick {
+func mergeIntervalTicks(ticks []*models.Tick, interval int64) *models.Tick {
 	var t *models.Tick
 	for i := range ticks {
 		tick := ticks[len(ticks)-1-i]
+		if tick.Time < (time.Now().Unix() - interval) {
+			continue
+		}
 		if t == nil {
 			t = tick
 		} else {
