@@ -39,6 +39,7 @@ func RefreshAccessToken(email, password string) (string, error) {
 		return "", errors.New("email not found or password error")
 	}
 	if !checkPassword(password, user.PasswordHash) {
+		return "", errors.New("email not found or password error")
 	}
 
 	claim := jwt.MapClaims{
