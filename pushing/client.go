@@ -98,9 +98,9 @@ func (c *Client) runWriter() {
 		select {
 		case message := <-c.writeCh:
 			// Forward l2change messages for incremental push
-			switch message.(type) {
+			switch msg := message.(type) {
 			case *Level2Change:
-				c.l2ChangeCh <- message.(*Level2Change)
+				c.l2ChangeCh <- msg
 				continue
 			}
 

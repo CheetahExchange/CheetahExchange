@@ -22,54 +22,54 @@ type BinLogStream struct {
 }
 
 func IntegerInterfaceToInt64(i interface{}) int64 {
-	switch i.(type) {
+	switch v := i.(type) {
 	case int:
-		return int64(i.(int))
+		return int64(v)
 	case uint:
-		return int64(i.(uint))
+		return int64(v)
 	case int64:
-		return i.(int64)
+		return v
 	case uint64:
-		return int64(i.(uint64))
+		return int64(v)
 	case int32:
-		return int64(i.(int32))
+		return int64(v)
 	case uint32:
-		return int64(i.(uint32))
+		return int64(v)
 	case int16:
-		return int64(i.(int16))
+		return int64(v)
 	case uint16:
-		return int64(i.(uint16))
+		return int64(v)
 	case int8:
-		return int64(i.(int8))
+		return int64(v)
 	case uint8:
-		return int64(i.(uint8))
+		return int64(v)
 	default:
 		panic(fmt.Sprintf("IntegerInterfaceToInt64: %v", reflect.TypeOf(i)))
 	}
 }
 
 func IntegerInterfaceToUint64(i interface{}) uint64 {
-	switch i.(type) {
+	switch v := i.(type) {
 	case int:
-		return uint64(i.(int))
+		return uint64(v)
 	case uint:
-		return uint64(i.(uint))
+		return uint64(v)
 	case int64:
-		return uint64(i.(int64))
+		return uint64(v)
 	case uint64:
-		return i.(uint64)
+		return v
 	case int32:
-		return uint64(i.(int32))
+		return uint64(v)
 	case uint32:
-		return uint64(i.(uint32))
+		return uint64(v)
 	case int16:
-		return uint64(i.(int16))
+		return uint64(v)
 	case uint16:
-		return uint64(i.(uint16))
+		return uint64(v)
 	case int8:
-		return uint64(i.(int8))
+		return uint64(v)
 	case uint8:
-		return uint64(i.(uint8))
+		return uint64(v)
 	default:
 		panic(fmt.Sprintf("IntegerInterfaceToUint64: %v", reflect.TypeOf(i)))
 	}

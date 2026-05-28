@@ -86,16 +86,14 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 	// publish candles info one second in the future
 	if (time.Now().Unix() - s.lastCandlesTime) > intervalSec {
 		go func(delaySec int64, productId string) {
-			select {
-			case <-time.After(time.Duration(delaySec) * time.Second):
-				ticks, err := service.GetLastTicksAllByProductId(productId)
-				if err != nil {
-					return
-				}
-				for _, tick := range ticks {
-					candles := s.newCandlesMessage(tick.Granularity, productId, tick)
-					s.sub.publish(CandlesFormatWithGranularityProductId(tick.Granularity, productId), candles)
-				}
+			time.Sleep(time.Duration(delaySec) * time.Second)
+			ticks, err := service.GetLastTicksAllByProductId(productId)
+			if err != nil {
+				return
+			}
+			for _, tick := range ticks {
+				candles := s.newCandlesMessage(tick.Granularity, productId, tick)
+				s.sub.publish(CandlesFormatWithGranularityProductId(tick.Granularity, productId), candles)
 			}
 		}(1, log.ProductId)
 		s.lastCandlesTime = time.Now().Unix()

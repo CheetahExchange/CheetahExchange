@@ -49,35 +49,32 @@ func (s *redisStream) Start() {
 				continue symbolOrder
 			}
 
-			for {
-				select {
-				case msg := <-ps.Channel():
-					var order models.Order
-					err := json.Unmarshal([]byte(msg.Payload), &order)
-					if err != nil {
-						_ = ps.Unsubscribe(ctx, models.TopicOrder)
-						continue symbolOrder
-					}
-
-					s.sub.publish(ChannelOrder.Format(order.ProductId, order.UserId), &OrderMessage{
-						UserId:        order.UserId,
-						Type:          "order",
-						Sequence:      0,
-						Id:            utils.I64ToA(order.Id),
-						Price:         order.Price.String(),
-						Size:          order.Size.String(),
-						Funds:         "0",
-						ProductId:     order.ProductId,
-						Side:          order.Side.String(),
-						OrderType:     order.Type.String(),
-						CreatedAt:     order.CreatedAt.Format(time.RFC3339),
-						FillFees:      order.FillFees.String(),
-						FilledSize:    order.FilledSize.String(),
-						ExecutedValue: order.ExecutedValue.String(),
-						Status:        order.Status.String(),
-						Settled:       order.Settled,
-					})
+			for msg := range ps.Channel() {
+				var order models.Order
+				err := json.Unmarshal([]byte(msg.Payload), &order)
+				if err != nil {
+					_ = ps.Unsubscribe(ctx, models.TopicOrder)
+					continue symbolOrder
 				}
+
+				s.sub.publish(ChannelOrder.Format(order.ProductId, order.UserId), &OrderMessage{
+					UserId:        order.UserId,
+					Type:          "order",
+					Sequence:      0,
+					Id:            utils.I64ToA(order.Id),
+					Price:         order.Price.String(),
+					Size:          order.Size.String(),
+					Funds:         "0",
+					ProductId:     order.ProductId,
+					Side:          order.Side.String(),
+					OrderType:     order.Type.String(),
+					CreatedAt:     order.CreatedAt.Format(time.RFC3339),
+					FillFees:      order.FillFees.String(),
+					FilledSize:    order.FilledSize.String(),
+					ExecutedValue: order.ExecutedValue.String(),
+					Status:        order.Status.String(),
+					Settled:       order.Settled,
+				})
 			}
 		}
 	}()
@@ -93,24 +90,21 @@ func (s *redisStream) Start() {
 				continue symbolAccount
 			}
 
-			for {
-				select {
-				case msg := <-ps.Channel():
-					var account models.Account
-					err := json.Unmarshal([]byte(msg.Payload), &account)
-					if err != nil {
-						continue symbolAccount
-					}
-
-					s.sub.publish(ChannelFunds.FormatWithUserId(account.UserId), &FundsMessage{
-						Type:      "funds",
-						Sequence:  0,
-						UserId:    utils.I64ToA(account.UserId),
-						Currency:  account.Currency,
-						Hold:      account.Hold.String(),
-						Available: account.Available.String(),
-					})
+			for msg := range ps.Channel() {
+				var account models.Account
+				err := json.Unmarshal([]byte(msg.Payload), &account)
+				if err != nil {
+					continue symbolAccount
 				}
+
+				s.sub.publish(ChannelFunds.FormatWithUserId(account.UserId), &FundsMessage{
+					Type:      "funds",
+					Sequence:  0,
+					UserId:    utils.I64ToA(account.UserId),
+					Currency:  account.Currency,
+					Hold:      account.Hold.String(),
+					Available: account.Available.String(),
+				})
 			}
 		}
 	}()
@@ -127,40 +121,37 @@ func (s *redisStream) Start() {
 				continue symbolTrade
 			}
 
-			for {
-				select {
-				case msg := <-ps.Channel():
-					var trade models.Trade
-					err := json.Unmarshal([]byte(msg.Payload), &trade)
-					if err != nil {
-						_ = ps.Unsubscribe(ctx, models.TopicTrade)
-						continue symbolTrade
-					}
-
-					// push to maker
-					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.MakerUserId), &TradeMessage{
-						Type:         "trade",
-						Time:         trade.Time.Format(time.RFC3339),
-						ProductId:    trade.ProductId,
-						Price:        trade.Price.String(),
-						Size:         trade.Size.String(),
-						MakerOrderId: utils.I64ToA(trade.MakerOrderId),
-						TakerOrderId: utils.I64ToA(trade.TakerOrderId),
-						Side:         trade.Side.String(),
-					})
-
-					// push to taker
-					s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.TakerUserId), &TradeMessage{
-						Type:         "trade",
-						Time:         trade.Time.Format(time.RFC3339),
-						ProductId:    trade.ProductId,
-						Price:        trade.Price.String(),
-						Size:         trade.Size.String(),
-						MakerOrderId: utils.I64ToA(trade.MakerOrderId),
-						TakerOrderId: utils.I64ToA(trade.TakerOrderId),
-						Side:         trade.Side.String(),
-					})
+			for msg := range ps.Channel() {
+				var trade models.Trade
+				err := json.Unmarshal([]byte(msg.Payload), &trade)
+				if err != nil {
+					_ = ps.Unsubscribe(ctx, models.TopicTrade)
+					continue symbolTrade
 				}
+
+				// push to maker
+				s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.MakerUserId), &TradeMessage{
+					Type:         "trade",
+					Time:         trade.Time.Format(time.RFC3339),
+					ProductId:    trade.ProductId,
+					Price:        trade.Price.String(),
+					Size:         trade.Size.String(),
+					MakerOrderId: utils.I64ToA(trade.MakerOrderId),
+					TakerOrderId: utils.I64ToA(trade.TakerOrderId),
+					Side:         trade.Side.String(),
+				})
+
+				// push to taker
+				s.sub.publish(ChannelTrade.Format(trade.ProductId, trade.TakerUserId), &TradeMessage{
+					Type:         "trade",
+					Time:         trade.Time.Format(time.RFC3339),
+					ProductId:    trade.ProductId,
+					Price:        trade.Price.String(),
+					Size:         trade.Size.String(),
+					MakerOrderId: utils.I64ToA(trade.MakerOrderId),
+					TakerOrderId: utils.I64ToA(trade.TakerOrderId),
+					Side:         trade.Side.String(),
+				})
 			}
 		}
 	}()

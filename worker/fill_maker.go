@@ -90,25 +90,22 @@ func (t *FillMaker) OnDoneLog(log *matching.DoneLog, offset int64) {
 func (t *FillMaker) flusher() {
 	var fills []*models.Fill
 
-	for {
-		select {
-		case fill := <-t.fillCh:
-			fills = append(fills, fill)
+	for fill := range t.fillCh {
+		fills = append(fills, fill)
 
-			if len(t.fillCh) > 0 && len(fills) < 1000 {
+		if len(t.fillCh) > 0 && len(fills) < 1000 {
+			continue
+		}
+
+		for {
+			err := service.AddFills(fills)
+			if err != nil {
+				log.Error(err)
+				time.Sleep(time.Second)
 				continue
 			}
-
-			for {
-				err := service.AddFills(fills)
-				if err != nil {
-					log.Error(err)
-					time.Sleep(time.Second)
-					continue
-				}
-				fills = nil
-				break
-			}
+			fills = nil
+			break
 		}
 	}
 }

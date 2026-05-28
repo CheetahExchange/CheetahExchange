@@ -71,26 +71,23 @@ func (t *TradeMaker) OnMatchLog(log *matching.MatchLog, offset int64) {
 func (t *TradeMaker) runFlusher() {
 	var trades []*models.Trade
 
-	for {
-		select {
-		case trade := <-t.tradeCh:
-			trades = append(trades, trade)
+	for trade := range t.tradeCh {
+		trades = append(trades, trade)
 
-			if len(t.tradeCh) > 0 && len(trades) < 1000 {
+		if len(t.tradeCh) > 0 && len(trades) < 1000 {
+			continue
+		}
+
+		// Ensuring Inbound Success
+		for {
+			err := service.AddTrades(trades)
+			if err != nil {
+				log.Error(err)
+				time.Sleep(time.Second)
 				continue
 			}
-
-			// Ensuring Inbound Success
-			for {
-				err := service.AddTrades(trades)
-				if err != nil {
-					log.Error(err)
-					time.Sleep(time.Second)
-					continue
-				}
-				trades = nil
-				break
-			}
+			trades = nil
+			break
 		}
 	}
 }

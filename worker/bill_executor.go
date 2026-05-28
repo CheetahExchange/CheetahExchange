@@ -26,13 +26,10 @@ func NewBillExecutor() *BillExecutor {
 	for i := 0; i < billWorkerNum; i++ {
 		f.workerChs[i] = make(chan *models.Bill, 256)
 		go func(idx int) {
-			for {
-				select {
-				case bill := <-f.workerChs[idx]:
-					err := service.ExecuteBill(bill.UserId, bill.Currency)
-					if err != nil {
-						log.Error(err)
-					}
+			for bill := range f.workerChs[idx] {
+				err := service.ExecuteBill(bill.UserId, bill.Currency)
+				if err != nil {
+					log.Error(err)
 				}
 			}
 		}(i)
@@ -73,18 +70,18 @@ func (s *BillExecutor) runMqListener() {
 }
 
 func (s *BillExecutor) runInspector() {
-	for {
-		select {
-		case <-time.After(1 * time.Second):
-			bills, err := service.GetUnsettledBills()
-			if err != nil {
-				log.Error(err)
-				continue
-			}
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
-			for _, bill := range bills {
-				s.workerChs[bill.UserId%billWorkerNum] <- bill
-			}
+	for range ticker.C {
+		bills, err := service.GetUnsettledBills()
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+
+		for _, bill := range bills {
+			s.workerChs[bill.UserId%billWorkerNum] <- bill
 		}
 	}
 }

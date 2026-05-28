@@ -95,25 +95,22 @@ func (t *TickMaker) OnMatchLog(log *matching.MatchLog, offset int64) {
 func (t *TickMaker) flusher() {
 	var ticks []*models.Tick
 
-	for {
-		select {
-		case tick := <-t.tickCh:
-			ticks = append(ticks, &tick)
+	for tick := range t.tickCh {
+		ticks = append(ticks, &tick)
 
-			if len(t.tickCh) > 0 && len(ticks) < 1000 {
+		if len(t.tickCh) > 0 && len(ticks) < 1000 {
+			continue
+		}
+
+		for {
+			err := service.AddTicks(ticks)
+			if err != nil {
+				log.Error(err)
+				time.Sleep(time.Second)
 				continue
 			}
-
-			for {
-				err := service.AddTicks(ticks)
-				if err != nil {
-					log.Error(err)
-					time.Sleep(time.Second)
-					continue
-				}
-				ticks = nil
-				break
-			}
+			ticks = nil
+			break
 		}
 	}
 }

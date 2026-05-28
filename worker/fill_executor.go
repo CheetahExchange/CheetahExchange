@@ -33,33 +33,30 @@ func NewFillExecutor() *FillExecutor {
 				panic(err)
 			}
 
-			for {
-				select {
-				case fill := <-f.workerChs[idx]:
-					if settledOrderCache.Contains(fill.OrderId) {
-						continue
-					}
+			for fill := range f.workerChs[idx] {
+				if settledOrderCache.Contains(fill.OrderId) {
+					continue
+				}
 
-					order, err := service.GetOrderById(fill.OrderId)
-					if err != nil {
-						log.Error(err)
-					}
-					if order == nil {
-						log.Warnf("order not found: %v", fill.OrderId)
-						continue
-					}
+				order, err := service.GetOrderById(fill.OrderId)
+				if err != nil {
+					log.Error(err)
+				}
+				if order == nil {
+					log.Warnf("order not found: %v", fill.OrderId)
+					continue
+				}
 
-					// completed order
-					if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusFilled ||
-						order.Status == models.OrderStatusPartial {
-						settledOrderCache.Add(order.Id, struct{}{})
-						continue
-					}
+				// completed order
+				if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusFilled ||
+					order.Status == models.OrderStatusPartial {
+					settledOrderCache.Add(order.Id, struct{}{})
+					continue
+				}
 
-					err = service.ExecuteFill(fill.OrderId)
-					if err != nil {
-						log.Error(err)
-					}
+				err = service.ExecuteFill(fill.OrderId)
+				if err != nil {
+					log.Error(err)
 				}
 			}
 		}(i)
@@ -105,17 +102,16 @@ func (s *FillExecutor) runMqListener() {
 // Timed Polling Database
 func (s *FillExecutor) runInspector() {
 	for {
-		select {
-		case <-time.After(1 * time.Second):
-			fills, err := service.GetUnsettledFills(1000)
-			if err != nil {
-				log.Error(err)
-				continue
-			}
+		time.Sleep(1 * time.Second)
 
-			for _, fill := range fills {
-				s.workerChs[fill.OrderId%fillWorkerNum] <- fill
-			}
+		fills, err := service.GetUnsettledFills(1000)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+
+		for _, fill := range fills {
+			s.workerChs[fill.OrderId%fillWorkerNum] <- fill
 		}
 	}
 }
