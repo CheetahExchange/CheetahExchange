@@ -128,7 +128,7 @@ func PlaceOrder(userId uint64, userLevel string, clientOid string, productId str
 	order.Id = uint64(node.Generate().Int64())
 
 	if mysql.GetTableIndexByOrderId(order.Id) != mysql.GetTableIndexByUserId(userId) {
-		panic("shard index mismatch: orderId and userId route to different tables")
+		log.Fatalf("shard index mismatch: orderId=%d userId=%d route to different tables", order.Id, userId)
 	}
 
 	err = db.AddOrder(order)
