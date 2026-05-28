@@ -76,11 +76,9 @@ func NewOrderBook(product *models.Product) *orderBook {
 	return orderBook
 }
 
-func (o *orderBook) IsOrderWillNotMatch(order *models.Order) bool {
-	takerOrder := newBookOrder(order)
-
-	// If it's a Market-Buy order, set price to infinite high, and if it's market-sell,
-	// set price to zero, which ensures that prices will cross.
+// prepareTakerOrder adjusts market order price for matching:
+// Market-Buy → MaxFloat32, Market-Sell → Zero, ensuring prices will cross.
+func prepareTakerOrder(takerOrder *BookOrder) {
 	if takerOrder.Type == models.OrderTypeMarket {
 		if takerOrder.Side == models.SideBuy {
 			takerOrder.Price = decimal.NewFromFloat(math.MaxFloat32)
@@ -88,6 +86,53 @@ func (o *orderBook) IsOrderWillNotMatch(order *models.Order) bool {
 			takerOrder.Price = decimal.Zero
 		}
 	}
+}
+
+// pricesCross checks whether taker and maker prices cross.
+func pricesCross(takerSide models.Side, takerPrice, makerPrice decimal.Decimal) bool {
+	if takerSide == models.SideBuy {
+		return takerPrice.GreaterThanOrEqual(makerPrice)
+	}
+	return takerPrice.LessThanOrEqual(makerPrice)
+}
+
+// calcTradeSize calculates the trade size for a single taker-maker pair,
+// adjusting taker's remaining Size or Funds accordingly.
+// Returns (size, fundsConsumed) and whether taker is exhausted.
+func calcTradeSize(takerOrder *BookOrder, makerOrder *BookOrder, product *models.Product) (size decimal.Decimal, fundsConsumed decimal.Decimal, takerExhausted bool) {
+	if takerOrder.Type == models.OrderTypeLimit ||
+		(takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideSell) {
+		if takerOrder.Size.IsZero() {
+			return decimal.Zero, decimal.Zero, true
+		}
+		size = decimal.Min(takerOrder.Size, makerOrder.Size)
+		takerOrder.Size = takerOrder.Size.Sub(size)
+		takerExhausted = takerOrder.Size.IsZero()
+		return size, decimal.Zero, takerExhausted
+	}
+
+	if takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideBuy {
+		if takerOrder.Funds.IsZero() {
+			return decimal.Zero, decimal.Zero, true
+		}
+		takerSize := takerOrder.Funds.Div(makerOrder.Price).Truncate(product.BaseScale)
+		if takerSize.IsZero() {
+			return decimal.Zero, decimal.Zero, true
+		}
+		size = decimal.Min(takerSize, makerOrder.Size)
+		fundsConsumed = size.Mul(makerOrder.Price)
+		takerOrder.Funds = takerOrder.Funds.Sub(fundsConsumed)
+		takerExhausted = takerOrder.Funds.IsZero()
+		return size, fundsConsumed, takerExhausted
+	}
+
+	log.Fatal("unknown orderType and side combination")
+	return decimal.Zero, decimal.Zero, true
+}
+
+func (o *orderBook) IsOrderWillNotMatch(order *models.Order) bool {
+	takerOrder := newBookOrder(order)
+	prepareTakerOrder(takerOrder)
 
 	makerDepth := o.depths[takerOrder.Side.Opposite()]
 
@@ -96,85 +141,44 @@ func (o *orderBook) IsOrderWillNotMatch(order *models.Order) bool {
 		if k == nil || v == nil {
 			return true
 		}
-
 		makerOrder := makerDepth.orders[v.(uint64)]
-		if takerOrder.Price.LessThan(makerOrder.Price) {
-			return true
-		}
-	} else if takerOrder.Side == models.SideSell {
-		k, v := makerDepth.queue.Max()
-		if k == nil || v == nil {
-			return true
-		}
-
-		makerOrder := makerDepth.orders[v.(uint64)]
-		if takerOrder.Price.GreaterThan(makerOrder.Price) {
-			return true
-		}
+		return !pricesCross(takerOrder.Side, takerOrder.Price, makerOrder.Price)
 	}
 
-	return false
+	k, v := makerDepth.queue.Max()
+	if k == nil || v == nil {
+		return true
+	}
+	makerOrder := makerDepth.orders[v.(uint64)]
+	return !pricesCross(takerOrder.Side, takerOrder.Price, makerOrder.Price)
 }
 
 func (o *orderBook) IsOrderWillFullMatch(order *models.Order) bool {
 	takerOrder := newBookOrder(order)
-
-	// If it's a Market-Buy order, set price to infinite high, and if it's market-sell,
-	// set price to zero, which ensures that prices will cross.
-	if takerOrder.Type == models.OrderTypeMarket {
-		if takerOrder.Side == models.SideBuy {
-			takerOrder.Price = decimal.NewFromFloat(math.MaxFloat32)
-		} else {
-			takerOrder.Price = decimal.Zero
-		}
-	}
+	prepareTakerOrder(takerOrder)
 
 	makerDepth := o.depths[takerOrder.Side.Opposite()]
 	for itr := makerDepth.queue.Iterator(); itr.Next(); {
 		makerOrder := makerDepth.orders[itr.Value().(uint64)]
 
-		// check whether there is price crossing between the taker and the maker
-		if (takerOrder.Side == models.SideBuy && takerOrder.Price.LessThan(makerOrder.Price)) ||
-			(takerOrder.Side == models.SideSell && takerOrder.Price.GreaterThan(makerOrder.Price)) {
+		if !pricesCross(takerOrder.Side, takerOrder.Price, makerOrder.Price) {
 			break
 		}
 
-		// trade price
-		var price = makerOrder.Price
-		// trade size
-		var size decimal.Decimal
+		size, _, _ := calcTradeSize(takerOrder, makerOrder, o.product)
+		if size.IsZero() {
+			break
+		}
 
 		if takerOrder.Type == models.OrderTypeLimit ||
 			(takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideSell) {
 			if takerOrder.Size.IsZero() {
 				break
 			}
-
-			// Take the minimum size of taker and maker as trade size
-			size = decimal.Min(takerOrder.Size, makerOrder.Size)
-
-			// adjust the size of taker order
-			takerOrder.Size = takerOrder.Size.Sub(size)
-
 		} else if takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideBuy {
 			if takerOrder.Funds.IsZero() {
 				break
 			}
-
-			// calculate the size of taker at current price
-			takerSize := takerOrder.Funds.Div(price).Truncate(o.product.BaseScale)
-			if takerSize.IsZero() {
-				break
-			}
-
-			// Take the minimum size of taker and maker as trade size
-			size = decimal.Min(takerSize, makerOrder.Size)
-			funds := size.Mul(price)
-
-			// adjust the funds of taker order
-			takerOrder.Funds = takerOrder.Funds.Sub(funds)
-		} else {
-			log.Fatal("unknown orderType and side combination")
 		}
 	}
 
@@ -195,63 +199,19 @@ func (o *orderBook) ApplyOrder(order *models.Order) (logs []Log) {
 	}
 
 	takerOrder := newBookOrder(order)
-
-	// If it's a Market-Buy order, set price to infinite high, and if it's market-sell,
-	// set price to zero, which ensures that prices will cross.
-	if takerOrder.Type == models.OrderTypeMarket {
-		if takerOrder.Side == models.SideBuy {
-			takerOrder.Price = decimal.NewFromFloat(math.MaxFloat32)
-		} else {
-			takerOrder.Price = decimal.Zero
-		}
-	}
+	prepareTakerOrder(takerOrder)
 
 	makerDepth := o.depths[takerOrder.Side.Opposite()]
 	for itr := makerDepth.queue.Iterator(); itr.Next(); {
 		makerOrder := makerDepth.orders[itr.Value().(uint64)]
 
-		// check whether there is price crossing between the taker and the maker
-		if (takerOrder.Side == models.SideBuy && takerOrder.Price.LessThan(makerOrder.Price)) ||
-			(takerOrder.Side == models.SideSell && takerOrder.Price.GreaterThan(makerOrder.Price)) {
+		if !pricesCross(takerOrder.Side, takerOrder.Price, makerOrder.Price) {
 			break
 		}
 
-		// trade price
-		var price = makerOrder.Price
-		// trade size
-		var size decimal.Decimal
-
-		if takerOrder.Type == models.OrderTypeLimit ||
-			(takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideSell) {
-			if takerOrder.Size.IsZero() {
-				break
-			}
-
-			// Take the minimum size of taker and maker as trade size
-			size = decimal.Min(takerOrder.Size, makerOrder.Size)
-
-			// adjust the size of taker order
-			takerOrder.Size = takerOrder.Size.Sub(size)
-
-		} else if takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideBuy {
-			if takerOrder.Funds.IsZero() {
-				break
-			}
-
-			// calculate the size of taker at current price
-			takerSize := takerOrder.Funds.Div(price).Truncate(o.product.BaseScale)
-			if takerSize.IsZero() {
-				break
-			}
-
-			// Take the minimum size of taker and maker as trade size
-			size = decimal.Min(takerSize, makerOrder.Size)
-			funds := size.Mul(price)
-
-			// adjust the funds of taker order
-			takerOrder.Funds = takerOrder.Funds.Sub(funds)
-		} else {
-			log.Fatal("unknown orderType and side combination")
+		size, _, _ := calcTradeSize(takerOrder, makerOrder, o.product)
+		if size.IsZero() {
+			break
 		}
 
 		// adjust the size of maker order
@@ -260,14 +220,26 @@ func (o *orderBook) ApplyOrder(order *models.Order) (logs []Log) {
 			log.Fatal(err)
 		}
 
-		// matched,write a log
-		matchLog := newMatchLog(o.nextLogSeq(), o.product.Id, o.nextTradeSeq(), takerOrder, makerOrder, price, size)
+		// matched, write a log
+		matchLog := newMatchLog(o.nextLogSeq(), o.product.Id, o.nextTradeSeq(), takerOrder, makerOrder, makerOrder.Price, size)
 		logs = append(logs, matchLog)
 
 		// maker is filled
 		if makerOrder.Size.IsZero() {
 			doneLog := newDoneLog(o.nextLogSeq(), o.product.Id, makerOrder, makerOrder.Size, models.DoneReasonFilled)
 			logs = append(logs, doneLog)
+		}
+
+		// check if taker is exhausted after this match — next iteration would see zero Size/Funds
+		if takerOrder.Type == models.OrderTypeLimit ||
+			(takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideSell) {
+			if takerOrder.Size.IsZero() {
+				break
+			}
+		} else if takerOrder.Type == models.OrderTypeMarket && takerOrder.Side == models.SideBuy {
+			if takerOrder.Funds.IsZero() {
+				break
+			}
 		}
 	}
 
