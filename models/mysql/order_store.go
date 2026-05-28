@@ -40,7 +40,7 @@ func (s *Store) GetOrderByClientOid(userId int64, clientOid string) (*models.Ord
 func (s *Store) GetOrderByIdForUpdate(orderId int64) (*models.Order, error) {
 	var order models.Order
 	table := fmt.Sprintf("g_order_%d", GetTableIndexByOrderId(orderId))
-	err := s.db.Table(table).Raw("SELECT * FROM ? WHERE id =? FOR UPDATE", table, orderId).Scan(&order).Error
+	err := s.db.Raw(fmt.Sprintf("SELECT * FROM %s WHERE id =? FOR UPDATE", table), orderId).Scan(&order).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

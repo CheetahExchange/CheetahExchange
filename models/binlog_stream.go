@@ -185,31 +185,47 @@ func (s *BinLogStream) parseRow(e *canal.RowsEvent, row []interface{}, dest inte
 		f := v.Field(i)
 
 		colIdx := s.getColumnIndexByName(e, utils.SnakeCase(t.Field(i).Name))
+		if colIdx < 0 {
+			log.Errorf("binlog column not found: table=%s field=%s snakeCase=%s", e.Table.Name, t.Field(i).Name, utils.SnakeCase(t.Field(i).Name))
+			continue
+		}
+		if colIdx >= len(row) {
+			log.Errorf("binlog column index out of range: table=%s field=%s colIdx=%d rowLen=%d", e.Table.Name, t.Field(i).Name, colIdx, len(row))
+			continue
+		}
 		rowVal := row[colIdx]
 
 		switch f.Type().Name() {
 		case "int64", "int32", "int16", "int8", "int":
-			f.SetInt(IntegerInterfaceToInt64(rowVal))
+			if rowVal != nil {
+				f.SetInt(IntegerInterfaceToInt64(rowVal))
+			}
 		case "uint64", "uint32", "uint16", "uint8", "uint":
-			f.SetUint(IntegerInterfaceToUint64(rowVal))
+			if rowVal != nil {
+				f.SetUint(IntegerInterfaceToUint64(rowVal))
+			}
 		case "string":
-			f.SetString(rowVal.(string))
+			if rowVal != nil {
+				f.SetString(rowVal.(string))
+			}
 		case "bool":
-			v := IntegerInterfaceToInt64(rowVal)
-			if v == 0 {
-				f.SetBool(false)
-			} else {
-				f.SetBool(true)
+			if rowVal != nil {
+				v := IntegerInterfaceToInt64(rowVal)
+				f.SetBool(v != 0)
 			}
 		case "Time":
 			if rowVal != nil {
 				f.Set(reflect.ValueOf(rowVal.(time.Time)))
 			}
 		case "Decimal":
-			d, _ := decimal.NewFromString(rowVal.(string))
-			f.Set(reflect.ValueOf(d))
+			if rowVal != nil {
+				d, _ := decimal.NewFromString(rowVal.(string))
+				f.Set(reflect.ValueOf(d))
+			}
 		default:
-			f.SetString(rowVal.(string))
+			if rowVal != nil {
+				f.SetString(rowVal.(string))
+			}
 		}
 	}
 }
