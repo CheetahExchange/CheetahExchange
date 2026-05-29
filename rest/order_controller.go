@@ -142,6 +142,11 @@ func CancelOrder(ctx *gin.Context) {
 		return
 	}
 
+	if order.Status != models.OrderStatusNew && order.Status != models.OrderStatusOpen && order.Status != models.OrderStatusPartial {
+		ctx.JSON(http.StatusBadRequest, newMessageVo(errors.New("order cannot be cancelled")))
+		return
+	}
+
 	order.Status = models.OrderStatusCancelling
 	submitOrder(order)
 
