@@ -16,6 +16,26 @@ func ExecuteBill(userId uint64, currency string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	// Lock account first to prevent concurrent execution for the same user
+	account, err := tx.GetAccountForUpdate(userId, currency)
+	if err != nil {
+		return err
+	}
+	if account == nil {
+		err = tx.AddAccount(&models.Account{
+			UserId:    userId,
+			Currency:  currency,
+			Available: decimal.Zero,
+		})
+		if err != nil {
+			return err
+		}
+		account, err = tx.GetAccountForUpdate(userId, currency)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Get all unsettled bills
 	bills, err := tx.GetUnsettledBillsByUserId(userId, currency)
 	if err != nil {
@@ -33,27 +53,6 @@ func ExecuteBill(userId uint64, currency string) error {
 		bill.Settled = true
 
 		err = tx.UpdateBill(bill)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Locking of user funds record
-	account, err := tx.GetAccountForUpdate(userId, currency)
-	if err != nil {
-		return err
-	}
-	// If funds record does not exist, create one and perform locking again
-	if account == nil {
-		err = tx.AddAccount(&models.Account{
-			UserId:    userId,
-			Currency:  currency,
-			Available: decimal.Zero,
-		})
-		if err != nil {
-			return err
-		}
-		account, err = tx.GetAccountForUpdate(userId, currency)
 		if err != nil {
 			return err
 		}
