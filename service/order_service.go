@@ -65,11 +65,11 @@ func PlaceOrder(userId uint64, userLevel string, clientOid string, productId str
 			return nil, fmt.Errorf("size %v less than base min size %v", size, product.BaseMinSize)
 		}
 		price = price.Round(product.QuoteScale)
-	if product.QuoteIncrement.IsPositive() && !price.Mod(product.QuoteIncrement).IsZero() {
-		return nil, errors.New("price must be a multiple of quote_increment")
-	}
-		if price.LessThan(decimal.Zero) {
-			return nil, fmt.Errorf("price %v less than 0", price)
+		if product.QuoteIncrement.IsPositive() && !price.Mod(product.QuoteIncrement).IsZero() {
+			return nil, errors.New("price must be a multiple of quote_increment")
+		}
+		if price.LessThanOrEqual(decimal.Zero) {
+			return nil, fmt.Errorf("price %v must be positive for limit orders", price)
 		}
 		funds = size.Mul(price)
 	case models.OrderTypeMarket:
