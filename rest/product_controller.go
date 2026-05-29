@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -54,6 +55,11 @@ func GetProductTrades(ctx *gin.Context) {
 func GetProductCandles(ctx *gin.Context) {
 	productId := ctx.Param("productId")
 	granularity, _ := strconv.ParseInt(ctx.Query("granularity"), 10, 64)
+	validGranularities := map[int64]bool{1: true, 3: true, 5: true, 15: true, 30: true, 60: true, 120: true, 240: true, 360: true, 720: true, 1440: true}
+	if !validGranularities[granularity] {
+		ctx.JSON(http.StatusBadRequest, newMessageVo(errors.New("invalid granularity, must be one of: 1,3,5,15,30,60,120,240,360,720,1440")))
+		return
+	}
 
 	before, _ := strconv.ParseInt(ctx.Query("before"), 10, 64)
 	after, _ := strconv.ParseInt(ctx.Query("after"), 10, 64)

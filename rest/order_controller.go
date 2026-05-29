@@ -128,7 +128,11 @@ func CancelOrder(ctx *gin.Context) {
 		clientOid := strings.Split(rawOrderId, ":")[1]
 		order, err = service.GetOrderByClientOid(GetCurrentUser(ctx).Id, clientOid)
 	} else {
-		orderId, _ := utils.AToUint64(rawOrderId)
+		orderId, err2 := utils.AToUint64(rawOrderId)
+		if err2 != nil {
+			ctx.JSON(http.StatusBadRequest, newMessageVo(errors.New("invalid order id")))
+			return
+		}
 		order, err = service.GetOrderById(orderId)
 	}
 
