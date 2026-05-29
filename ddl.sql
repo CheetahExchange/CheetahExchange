@@ -95,7 +95,7 @@ CREATE TABLE `g_product` (
   `base_max_size` decimal(32,16) NOT NULL,
   `base_scale` int(11) NOT NULL,
   `quote_scale` int(11) NOT NULL,
-  `quote_increment` double NOT NULL,
+  `quote_increment` decimal(32,16) NOT NULL,
   `quote_min_size` decimal(32,16) NOT NULL,
   `quote_max_size` decimal(32,16) NOT NULL,
   PRIMARY KEY (`id`)
