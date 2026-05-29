@@ -168,7 +168,7 @@ type Product struct {
 	QuoteMaxSize   decimal.Decimal `sql:"type:decimal(32,16);"`
 	BaseScale      int32
 	QuoteScale     int32
-	QuoteIncrement float64
+	QuoteIncrement decimal.Decimal `sql:"type:decimal(32,16);"`
 }
 
 type Order struct {

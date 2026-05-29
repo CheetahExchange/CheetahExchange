@@ -2,10 +2,11 @@ package rest
 
 import (
 	"fmt"
-	"github.com/CheetahExchange/CheetahExchange/models"
-	"github.com/CheetahExchange/CheetahExchange/utils"
 	"strings"
 	"time"
+
+	"github.com/CheetahExchange/CheetahExchange/models"
+	"github.com/CheetahExchange/CheetahExchange/utils"
 )
 
 type messageVo struct {
@@ -27,14 +28,14 @@ type AccountVo struct {
 }
 
 type placeOrderRequest struct {
-	ClientOid   string  `json:"client_oid"`
-	ProductId   string  `json:"productId"`
+	ClientOid   string `json:"client_oid"`
+	ProductId   string `json:"productId"`
 	Size        string `json:"size"`
 	Funds       string `json:"funds"`
 	Price       string `json:"price"`
-	Side        string  `json:"side"`
-	Type        string  `json:"type"`        // [optional] limit or market (default is limit)
-	TimeInForce string  `json:"timeInForce"` // [optional] GTC, IOC, FOK or GTX (default is GTC)
+	Side        string `json:"side"`
+	Type        string `json:"type"`        // [optional] limit or market (default is limit)
+	TimeInForce string `json:"timeInForce"` // [optional] GTC, IOC, FOK or GTX (default is GTC)
 }
 
 type orderVo struct {
@@ -180,7 +181,7 @@ func newProductVo(product *models.Product) *ProductVo {
 		QuoteCurrency:  product.QuoteCurrency,
 		BaseMinSize:    product.BaseMinSize.String(),
 		BaseMaxSize:    product.BaseMaxSize.String(),
-		QuoteIncrement: utils.F64ToA(product.QuoteIncrement),
+		QuoteIncrement: product.QuoteIncrement.String(),
 		BaseScale:      product.BaseScale,
 		QuoteScale:     product.QuoteScale,
 	}
