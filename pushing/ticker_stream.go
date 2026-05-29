@@ -24,8 +24,6 @@ var (
 type TickerStream struct {
 	productId       string
 	sub             *subscription
-	bestBid         decimal.Decimal
-	bestAsk         decimal.Decimal
 	logReader       matching.LogReader
 	lastTickerTime  int64
 	lastCandlesTime int64
@@ -80,6 +78,7 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 		ticker.Price = log.Price.String()
 		ticker.Side = log.Side.String()
 		ticker.LastSize = log.Size.String()
+		ticker.BestBid, ticker.BestAsk = getBestBidAsk(log.ProductId)
 		lastTickers.Store(log.ProductId, ticker)
 		s.sub.publish(ChannelTicker.FormatWithProductId(log.ProductId), ticker)
 	}
@@ -101,6 +100,20 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 	}
 }
 
+func getBestBidAsk(productId string) (bestBid, bestAsk string) {
+	snapshot := getLastLevel2Snapshot(productId)
+	if snapshot == nil {
+		return "", ""
+	}
+	if len(snapshot.Bids) > 0 {
+		bestBid = fmt.Sprintf("%v", snapshot.Bids[0][0])
+	}
+	if len(snapshot.Asks) > 0 {
+		bestAsk = fmt.Sprintf("%v", snapshot.Asks[0][0])
+	}
+	return bestBid, bestAsk
+}
+
 func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage, error) {
 	ticks24h, err := service.GetTicksByProductId(s.productId, 1*60, 0, 0, 24)
 	if err != nil {
@@ -120,6 +133,8 @@ func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage,
 		tick30d = &models.Tick{}
 	}
 
+	bestBid, bestAsk := getBestBidAsk(s.productId)
+
 	return &TickerMessage{
 		Type:           "ticker",
 		TradeSeq:       log.TradeSeq,
@@ -129,6 +144,8 @@ func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage,
 		Price:          log.Price.String(),
 		Side:           log.Side.String(),
 		LastSize:       log.Size.String(),
+		BestBid:        bestBid,
+		BestAsk:        bestAsk,
 		Open24h:        tick24h.Open.String(),
 		Close24h:       tick24h.Close.String(),
 		Low24h:         tick24h.Low.String(),
@@ -219,11 +236,15 @@ func getLastTickerOnSubscribed(productId string) *TickerMessage {
 		tick30d = &models.Tick{}
 	}
 
+	bestBid, bestAsk := getBestBidAsk(productId)
+
 	return &TickerMessage{
 		Type:           "ticker",
 		Time:           time.Now().Unix(),
 		ProductId:      productId,
 		Price:          tick24h.Close.String(),
+		BestBid:        bestBid,
+		BestAsk:        bestAsk,
 		Open24h:        tick24h.Open.String(),
 		Close24h:       tick24h.Close.String(),
 		Low24h:         tick24h.Low.String(),
