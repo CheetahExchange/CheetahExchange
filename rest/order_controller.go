@@ -113,7 +113,7 @@ func PlaceOrder(ctx *gin.Context) {
 
 	submitOrder(order)
 
-	ctx.JSON(http.StatusOK, order)
+	ctx.JSON(http.StatusOK, newOrderVo(order))
 }
 
 // Cancels an order with the specified id
