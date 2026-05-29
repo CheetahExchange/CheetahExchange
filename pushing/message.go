@@ -95,26 +95,30 @@ type MatchMessage struct {
 }
 
 type TickerMessage struct {
-	Type      string `json:"type"`
-	TradeSeq  int64  `json:"tradeSeq"`
-	Sequence  int64  `json:"sequence"`
-	Time      string `json:"time"`
-	ProductId string `json:"productId"`
-	Price     string `json:"price"`
-	Side      string `json:"side"`
-	LastSize  string `json:"lastSize"`
-	BestBid   string `json:"bestBid"`
-	BestAsk   string `json:"bestAsk"`
-	Volume24h string `json:"volume24h"`
-	Volume30d string `json:"volume30d"`
-	Low24h    string `json:"low24h"`
-	Open24h   string `json:"open24h"`
+	Type           string `json:"type"`
+	TradeSeq       int64  `json:"tradeSeq"`
+	Sequence       int64  `json:"sequence"`
+	Time           int64  `json:"time"`
+	ProductId      string `json:"productId"`
+	Price          string `json:"price"`
+	Side           string `json:"side"`
+	LastSize       string `json:"lastSize"`
+	BestBid        string `json:"bestBid"`
+	BestAsk        string `json:"bestAsk"`
+	Volume24h      string `json:"volume24h"`
+	Volume30d      string `json:"volume30d"`
+	QuoteVolume24h string `json:"quoteVolume24h"`
+	QuoteVolume30d string `json:"quoteVolume30d"`
+	Low24h         string `json:"low24h"`
+	High24h        string `json:"high24h"`
+	Open24h        string `json:"open24h"`
+	Close24h       string `json:"close24h"`
 }
 
 type CandlesMessage struct {
 	Type      string `json:"type"`
 	ProductId string `json:"productId"`
-	Time      string `json:"time"`
+	Time      int64  `json:"time"`
 	Open      string `json:"open"`
 	Close     string `json:"close"`
 	Low       string `json:"low"`

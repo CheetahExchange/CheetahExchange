@@ -2,8 +2,9 @@ package models
 
 import (
 	"fmt"
-	"github.com/shopspring/decimal"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 // Used to indicate the direction of an order or transaction: buy, sell
@@ -243,6 +244,7 @@ type Tick struct {
 	Low         decimal.Decimal `sql:"type:decimal(32,16);"`
 	Close       decimal.Decimal `sql:"type:decimal(32,16);"`
 	Volume      decimal.Decimal `sql:"type:decimal(32,16);"`
+	QuoteVolume decimal.Decimal `sql:"type:decimal(32,16);"`
 	LogOffset   int64
 	LogSeq      int64
 }

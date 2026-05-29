@@ -2,9 +2,10 @@ package mysql
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/jinzhu/gorm"
-	"strings"
 )
 
 func (s *Store) GetTicksByProductId(productId string, granularity int64, beforeTime, afterTime int64, limit int) ([]*models.Tick, error) {
@@ -55,11 +56,28 @@ func (s *Store) AddTicks(ticks []*models.Tick) error {
 	var valueStrings []string
 	var args []interface{}
 	for _, tick := range ticks {
-		valueStrings = append(valueStrings, "(NOW(),?,?,?,?,?,?,?,?,?,?)")
+		valueStrings = append(valueStrings, "(NOW(),?,?,?,?,?,?,?,?,?,?,?)")
 		args = append(args, tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
-			tick.Volume, tick.LogOffset, tick.LogSeq)
+			tick.Volume, tick.QuoteVolume, tick.LogOffset, tick.LogSeq)
 	}
 	sql := fmt.Sprintf("REPLACE INTO g_tick(created_at, product_id,granularity,time,open,low,high,close,"+
-		"volume,log_offset,log_seq) VALUES %s", strings.Join(valueStrings, ","))
+		"volume,quote_volume,log_offset,log_seq) VALUES %s", strings.Join(valueStrings, ","))
+	return s.db.Exec(sql, args...).Error
+}
+
+func (s *Store) AddOrUpdateTick(tick *models.Tick) error {
+	if tick == nil {
+		return nil
+	}
+	sql := "INSERT INTO g_tick (created_at,product_id,granularity,time,open,low,high,close," +
+		"volume,quote_volume,log_offset,log_seq) VALUES (NOW(),?,?,?,?,?,?,?,?,?,?,?) " +
+		"ON DUPLICATE KEY UPDATE created_at = NOW(),open=?,low=?,high=?,close=?," +
+		"volume=?,quote_volume=?,log_offset=?,log_seq=?"
+	args := []interface{}{
+		tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
+		tick.Volume, tick.QuoteVolume, tick.LogOffset, tick.LogSeq,
+		tick.Open, tick.Low, tick.High, tick.Close,
+		tick.Volume, tick.QuoteVolume, tick.LogOffset, tick.LogSeq,
+	}
 	return s.db.Exec(sql, args...).Error
 }

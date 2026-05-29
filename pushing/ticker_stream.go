@@ -40,7 +40,6 @@ type TickerStream struct {
 	logReader       matching.LogReader
 	lastTickerTime  int64
 	lastCandlesTime int64
-	stats           *tickerStats
 }
 
 func newTickerStream(productId string, sub *subscription, logReader matching.LogReader) *TickerStream {
@@ -49,7 +48,6 @@ func newTickerStream(productId string, sub *subscription, logReader matching.Log
 		sub:            sub,
 		logReader:      logReader,
 		lastTickerTime: time.Now().Unix() - intervalSec,
-		stats:          &tickerStats{},
 	}
 	s.logReader.RegisterObserver(s)
 	return s
@@ -69,8 +67,6 @@ func (s *TickerStream) OnDoneLog(log *matching.DoneLog, offset int64) {
 }
 
 func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
-	s.updateTickerStats(log)
-
 	if (time.Now().Unix() - s.lastTickerTime) > intervalSec {
 		ticker, err := s.newTickerMessage(log)
 		if err != nil {
@@ -90,7 +86,7 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 		}
 		ticker.TradeSeq = log.TradeSeq
 		ticker.Sequence = log.Sequence
-		ticker.Time = log.Time.Format(time.RFC3339)
+		ticker.Time = log.Time.Unix()
 		ticker.ProductId = log.ProductId
 		ticker.Price = log.Price.String()
 		ticker.Side = log.Side.String()
@@ -116,11 +112,10 @@ func (s *TickerStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 	}
 }
 
-func (s *TickerStream) loadTickerStats() {
+func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage, error) {
 	ticks24h, err := service.GetTicksByProductId(s.productId, 1*60, 0, 0, 24)
 	if err != nil {
-		logger.Error(err)
-		return
+		return nil, err
 	}
 	tick24h := mergeIntervalTicks(ticks24h, 24*3600)
 	if tick24h == nil {
@@ -129,69 +124,30 @@ func (s *TickerStream) loadTickerStats() {
 
 	ticks30d, err := service.GetTicksByProductId(s.productId, 24*60, 0, 0, 30)
 	if err != nil {
-		logger.Error(err)
-		return
+		return nil, err
 	}
 	tick30d := mergeIntervalTicks(ticks30d, 30*86400)
 	if tick30d == nil {
 		tick30d = &models.Tick{}
 	}
 
-	s.stats.mu.Lock()
-	s.stats.Open24h = tick24h.Open
-	s.stats.Low24h = tick24h.Low
-	s.stats.High24h = tick24h.High
-	s.stats.Volume24h = tick24h.Volume
-	s.stats.Volume30d = tick30d.Volume
-	s.stats.loaded = true
-	s.stats.lastSync = time.Now()
-	s.stats.mu.Unlock()
-}
-
-func (s *TickerStream) updateTickerStats(log *matching.MatchLog) {
-	s.stats.mu.RLock()
-	loaded := s.stats.loaded
-	lastSync := s.stats.lastSync
-	s.stats.mu.RUnlock()
-
-	if !loaded {
-		s.loadTickerStats()
-		return
-	}
-
-	if time.Since(lastSync) > 5*time.Minute {
-		go s.loadTickerStats()
-	}
-
-	s.stats.mu.Lock()
-	if s.stats.Low24h.IsZero() || log.Price.LessThan(s.stats.Low24h) {
-		s.stats.Low24h = log.Price
-	}
-	if log.Price.GreaterThan(s.stats.High24h) {
-		s.stats.High24h = log.Price
-	}
-	s.stats.Volume24h = s.stats.Volume24h.Add(log.Size)
-	s.stats.Volume30d = s.stats.Volume30d.Add(log.Size)
-	s.stats.mu.Unlock()
-}
-
-func (s *TickerStream) newTickerMessage(log *matching.MatchLog) (*TickerMessage, error) {
-	s.stats.mu.RLock()
-	defer s.stats.mu.RUnlock()
-
 	return &TickerMessage{
-		Type:      "ticker",
-		TradeSeq:  log.TradeSeq,
-		Sequence:  log.Sequence,
-		Time:      log.Time.Format(time.RFC3339),
-		ProductId: log.ProductId,
-		Price:     log.Price.String(),
-		Side:      log.Side.String(),
-		LastSize:  log.Size.String(),
-		Open24h:   s.stats.Open24h.String(),
-		Low24h:    s.stats.Low24h.String(),
-		Volume24h: s.stats.Volume24h.String(),
-		Volume30d: s.stats.Volume30d.String(),
+		Type:           "ticker",
+		TradeSeq:       log.TradeSeq,
+		Sequence:       log.Sequence,
+		Time:           log.Time.Unix(),
+		ProductId:      log.ProductId,
+		Price:          log.Price.String(),
+		Side:           log.Side.String(),
+		LastSize:       log.Size.String(),
+		Open24h:        tick24h.Open.String(),
+		Close24h:       tick24h.Close.String(),
+		Low24h:         tick24h.Low.String(),
+		High24h:        tick24h.High.String(),
+		Volume24h:      tick24h.Volume.String(),
+		Volume30d:      tick30d.Volume.String(),
+		QuoteVolume24h: tick24h.QuoteVolume.String(),
+		QuoteVolume30d: tick30d.QuoteVolume.String(),
 	}, nil
 }
 
@@ -199,13 +155,31 @@ func (s *TickerStream) newCandlesMessage(granularity int64, productId string, ti
 	return &CandlesMessage{
 		Type:      fmt.Sprintf("candles_%dm", granularity),
 		ProductId: productId,
-		Time:      time.Unix(tick.Time, 0).Format(time.RFC3339),
+		Time:      tick.Time,
 		Open:      tick.Open.String(),
 		Close:     tick.Close.String(),
 		Low:       tick.Low.String(),
 		High:      tick.High.String(),
 		Volume:    tick.Volume.String(),
 	}
+}
+
+func mergeTicks(ticks []*models.Tick) *models.Tick {
+	var t *models.Tick
+	for i := range ticks {
+		tick := ticks[len(ticks)-1-i]
+		if t == nil {
+			t = tick
+		} else {
+			t.Open = tick.Open
+			t.Close = tick.Close
+			t.Low = decimal.Min(t.Low, tick.Low)
+			t.High = decimal.Max(t.High, tick.High)
+			t.Volume = t.Volume.Add(tick.Volume)
+			t.QuoteVolume = t.QuoteVolume.Add(tick.QuoteVolume)
+		}
+	}
+	return t
 }
 
 func mergeIntervalTicks(ticks []*models.Tick, interval int64) *models.Tick {
@@ -223,6 +197,7 @@ func mergeIntervalTicks(ticks []*models.Tick, interval int64) *models.Tick {
 			t.Low = decimal.Min(t.Low, tick.Low)
 			t.High = decimal.Max(t.High, tick.High)
 			t.Volume = t.Volume.Add(tick.Volume)
+			t.QuoteVolume = t.QuoteVolume.Add(tick.QuoteVolume)
 		}
 	}
 	return t
@@ -234,4 +209,39 @@ func getLastTicker(productId string) *TickerMessage {
 		return nil
 	}
 	return ticker.(*TickerMessage)
+}
+
+func getLastTickerOnSubscribed(productId string) *TickerMessage {
+	ticks24h, err := service.GetTicksByProductId(productId, 1*60, 0, 0, 24)
+	if err != nil {
+		return nil
+	}
+	tick24h := mergeIntervalTicks(ticks24h, 24*3600)
+	if tick24h == nil {
+		tick24h = &models.Tick{}
+	}
+
+	ticks30d, err := service.GetTicksByProductId(productId, 24*60, 0, 0, 30)
+	if err != nil {
+		return nil
+	}
+	tick30d := mergeIntervalTicks(ticks30d, 30*86400)
+	if tick30d == nil {
+		tick30d = &models.Tick{}
+	}
+
+	return &TickerMessage{
+		Type:           "ticker",
+		Time:           time.Now().Unix(),
+		ProductId:      productId,
+		Price:          tick24h.Close.String(),
+		Open24h:        tick24h.Open.String(),
+		Close24h:       tick24h.Close.String(),
+		Low24h:         tick24h.Low.String(),
+		High24h:        tick24h.High.String(),
+		Volume24h:      tick24h.Volume.String(),
+		Volume30d:      tick30d.Volume.String(),
+		QuoteVolume24h: tick24h.QuoteVolume.String(),
+		QuoteVolume30d: tick30d.QuoteVolume.String(),
+	}
 }

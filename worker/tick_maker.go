@@ -1,12 +1,13 @@
 package worker
 
 import (
+	"time"
+
 	"github.com/CheetahExchange/CheetahExchange/matching"
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/service"
 	"github.com/shopspring/decimal"
 	"github.com/siddontang/go-log/log"
-	"time"
 )
 
 var minutes = []int64{1, 3, 5, 15, 30, 60, 120, 240, 360, 720, 1440}
@@ -72,6 +73,7 @@ func (t *TickMaker) OnMatchLog(log *matching.MatchLog, offset int64) {
 				Low:         log.Price,
 				High:        log.Price,
 				Volume:      log.Size,
+				QuoteVolume: log.Price.Mul(log.Size),
 				ProductId:   log.ProductId,
 				Granularity: granularity,
 				Time:        tickTime,
@@ -84,6 +86,7 @@ func (t *TickMaker) OnMatchLog(log *matching.MatchLog, offset int64) {
 			tick.Low = decimal.Min(tick.Low, log.Price)
 			tick.High = decimal.Max(tick.High, log.Price)
 			tick.Volume = tick.Volume.Add(log.Size)
+			tick.QuoteVolume = tick.QuoteVolume.Add(log.Price.Mul(log.Size))
 			tick.LogOffset = offset
 			tick.LogSeq = log.Sequence
 		}

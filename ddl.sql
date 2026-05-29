@@ -113,6 +113,7 @@ CREATE TABLE `g_tick` (
   `low` decimal(32,16) NOT NULL,
   `close` decimal(32,16) NOT NULL,
   `volume` decimal(32,16) NOT NULL,
+  `quote_volume` decimal(32,16) NOT NULL,
   `log_offset` bigint(20) NOT NULL DEFAULT '0',
   `log_seq` bigint(20) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),

@@ -23,3 +23,10 @@ func AddTicks(ticks []*models.Tick) error {
 	}
 	return mysql.SharedStore().AddTicks(ticks)
 }
+
+func AddOrUpdateTick(tick *models.Tick) error {
+	if tick == nil {
+		return nil
+	}
+	return mysql.SharedStore().AddOrUpdateTick(tick)
+}
