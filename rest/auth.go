@@ -12,14 +12,10 @@ const keyCurrentUser = "__current_user"
 
 func checkToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Query("token")
-		if len(token) == 0 {
-			var err error
-			token, err = c.Cookie("accessToken")
-			if err != nil {
-				c.AbortWithStatusJSON(http.StatusForbidden, newMessageVo(errors.New("token not found")))
-				return
-			}
+		token, err := c.Cookie("accessToken")
+		if err != nil || len(token) == 0 {
+			c.AbortWithStatusJSON(http.StatusForbidden, newMessageVo(errors.New("token not found")))
+			return
 		}
 
 		user, err := service.CheckToken(token)
