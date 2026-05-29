@@ -1,6 +1,8 @@
 package mysql
 
 import (
+	"strings"
+
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/jinzhu/gorm"
 )
@@ -50,19 +52,34 @@ func (s *Store) AddTicks(ticks []*models.Tick) error {
 	if len(ticks) == 0 {
 		return nil
 	}
-	sql := "INSERT INTO g_tick (created_at,product_id,granularity,time,open,low,high,close," +
-		"volume,quote_volume,log_offset,log_seq) VALUES (NOW(),?,?,?,?,?,?,?,?,?,?,?) " +
-		"ON DUPLICATE KEY UPDATE created_at = NOW(),open=VALUES(open),low=VALUES(low),high=VALUES(high),close=VALUES(close)," +
-		"volume=VALUES(volume),quote_volume=VALUES(quote_volume),log_offset=VALUES(log_offset),log_seq=VALUES(log_seq)"
-	for _, tick := range ticks {
-		if tick == nil {
+	baseSql := "INSERT INTO g_tick (created_at,product_id,granularity,time,open,low,high,close," +
+		"volume,quote_volume,log_offset,log_seq) VALUES "
+	onDuplicate := " AS new ON DUPLICATE KEY UPDATE created_at = NOW(),open=new.open,low=new.low," +
+		"high=new.high,close=new.close,volume=new.volume," +
+		"quote_volume=new.quote_volume,log_offset=new.log_offset,log_seq=new.log_seq"
+
+	// batch in chunks of 500 to stay within MySQL limits
+	for i := 0; i < len(ticks); i += 500 {
+		end := i + 500
+		if end > len(ticks) {
+			end = len(ticks)
+		}
+		batch := ticks[i:end]
+
+		var placeholders []string
+		var args []interface{}
+		for _, tick := range batch {
+			if tick == nil {
+				continue
+			}
+			placeholders = append(placeholders, "(NOW(),?,?,?,?,?,?,?,?,?,?,?)")
+			args = append(args, tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
+				tick.Volume, tick.QuoteVolume, tick.LogOffset, tick.LogSeq)
+		}
+		if len(placeholders) == 0 {
 			continue
 		}
-		args := []interface{}{
-			tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
-			tick.Volume, tick.QuoteVolume, tick.LogOffset, tick.LogSeq,
-		}
-		if err := s.db.Exec(sql, args...).Error; err != nil {
+		if err := s.db.Exec(baseSql+strings.Join(placeholders, ",")+onDuplicate, args...).Error; err != nil {
 			return err
 		}
 	}
@@ -74,13 +91,11 @@ func (s *Store) AddOrUpdateTick(tick *models.Tick) error {
 		return nil
 	}
 	sql := "INSERT INTO g_tick (created_at,product_id,granularity,time,open,low,high,close," +
-		"volume,quote_volume,log_offset,log_seq) VALUES (NOW(),?,?,?,?,?,?,?,?,?,?,?) " +
-		"ON DUPLICATE KEY UPDATE created_at = NOW(),open=?,low=?,high=?,close=?," +
-		"volume=?,quote_volume=?,log_offset=?,log_seq=?"
+		"volume,quote_volume,log_offset,log_seq) VALUES (NOW(),?,?,?,?,?,?,?,?,?,?,?) AS new " +
+		"ON DUPLICATE KEY UPDATE created_at = NOW(),open=new.open,low=new.low,high=new.high,close=new.close," +
+		"volume=new.volume,quote_volume=new.quote_volume,log_offset=new.log_offset,log_seq=new.log_seq"
 	args := []interface{}{
 		tick.ProductId, tick.Granularity, tick.Time, tick.Open, tick.Low, tick.High, tick.Close,
-		tick.Volume, tick.QuoteVolume, tick.LogOffset, tick.LogSeq,
-		tick.Open, tick.Low, tick.High, tick.Close,
 		tick.Volume, tick.QuoteVolume, tick.LogOffset, tick.LogSeq,
 	}
 	return s.db.Exec(sql, args...).Error

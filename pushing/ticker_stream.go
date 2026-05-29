@@ -21,17 +21,6 @@ var (
 	lastTickers = sync.Map{}
 )
 
-type tickerStats struct {
-	Open24h   decimal.Decimal
-	Low24h    decimal.Decimal
-	High24h   decimal.Decimal
-	Volume24h decimal.Decimal
-	Volume30d decimal.Decimal
-	loaded    bool
-	lastSync  time.Time
-	mu        sync.RWMutex
-}
-
 type TickerStream struct {
 	productId       string
 	sub             *subscription
