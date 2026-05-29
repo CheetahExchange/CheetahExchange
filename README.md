@@ -262,14 +262,14 @@ CheetahExchange/
 | `g_account` | Multi-currency balances (hold + available) |
 | `g_bill` | Account change records |
 | `g_product` | Trading pairs (e.g., BTC-USDT) |
-| `g_order_0` .. `g_order_7` | Sharded order tables |
+| `g_order_0` .. `g_order_127` | Sharded order tables |
 | `g_fill` | Trade fill records |
 | `g_trade` | Executed trades |
 | `g_tick` | Candlestick (OHLCV) data |
 | `g_fee_rate` | Fee rates by user level |
 | `g_config` | System configuration |
 
-Order tables are sharded into 8 partitions for write scalability.
+Order tables are sharded into 128 partitions (`g_order_0` through `g_order_127`) for write scalability.
 
 ## License
 

@@ -262,14 +262,14 @@ CheetahExchange/
 | `g_account` | 多币种余额（冻结 + 可用） |
 | `g_bill` | 账户变动记录 |
 | `g_product` | 交易对（如 BTC-USDT） |
-| `g_order_0` ~ `g_order_7` | 分片订单表 |
+| `g_order_0` ~ `g_order_127` | 分片订单表 |
 | `g_fill` | 成交记录 |
 | `g_trade` | 已执行交易 |
 | `g_tick` | K线数据（OHLCV） |
 | `g_fee_rate` | 用户等级费率 |
 | `g_config` | 系统配置 |
 
-订单表按 8 个分片（`g_order_0` 至 `g_order_7`）拆分，提升写入性能。
+订单表按 128 个分片（`g_order_0` 至 `g_order_127`）拆分，提升写入性能。
 
 ## 许可证
 
