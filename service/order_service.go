@@ -58,7 +58,8 @@ func PlaceOrder(userId uint64, userLevel string, clientOid string, productId str
 		return nil, fmt.Errorf("invalid feeRate.TakerFeeRatio")
 	}
 
-	if orderType == models.OrderTypeLimit {
+	switch orderType {
+	case models.OrderTypeLimit:
 		size = size.Round(product.BaseScale)
 		if size.LessThan(product.BaseMinSize) {
 			return nil, fmt.Errorf("size %v less than base min size %v", size, product.BaseMinSize)
@@ -68,7 +69,7 @@ func PlaceOrder(userId uint64, userLevel string, clientOid string, productId str
 			return nil, fmt.Errorf("price %v less than 0", price)
 		}
 		funds = size.Mul(price)
-	} else if orderType == models.OrderTypeMarket {
+	case models.OrderTypeMarket:
 		if side == models.SideBuy {
 			size = decimal.Zero
 			price = decimal.Zero
@@ -84,7 +85,7 @@ func PlaceOrder(userId uint64, userLevel string, clientOid string, productId str
 			price = decimal.Zero
 			funds = decimal.Zero
 		}
-	} else {
+	default:
 		return nil, errors.New("unknown order type")
 	}
 
@@ -163,7 +164,7 @@ func ExecuteFill(orderId uint64) error {
 		return fmt.Errorf("order status invalid: %v %v", orderId, order.Status)
 	}
 
-	product, err := GetProductById(order.ProductId)
+	product, err := db.GetProductById(order.ProductId)
 	if err != nil {
 		return err
 	}
@@ -171,7 +172,7 @@ func ExecuteFill(orderId uint64) error {
 		return fmt.Errorf("product not found: %v", order.ProductId)
 	}
 
-	fills, err := mysql.SharedStore().GetUnsettledFillsByOrderId(orderId)
+	fills, err := db.GetUnsettledFillsByOrderId(orderId)
 	if err != nil {
 		return err
 	}
@@ -192,11 +193,12 @@ func ExecuteFill(orderId uint64) error {
 
 			if order.Side == models.SideBuy {
 				fee := decimal.NewFromInt(0)
-				if fill.Liquidity == "T" {
+				switch fill.Liquidity {
+				case "T":
 					fee = fill.Size.Mul(order.TakerFeeRatio)
-				} else if fill.Liquidity == "M" {
+				case "M":
 					fee = fill.Size.Mul(order.MakerFeeRatio)
-				} else {
+				default:
 					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
 				}
 				fill.Fee = fee
@@ -230,11 +232,12 @@ func ExecuteFill(orderId uint64) error {
 
 			} else {
 				fee := decimal.NewFromInt(0)
-				if fill.Liquidity == "T" {
+				switch fill.Liquidity {
+				case "T":
 					fee = executedValue.Mul(order.TakerFeeRatio)
-				} else if fill.Liquidity == "M" {
+				case "M":
 					fee = executedValue.Mul(order.MakerFeeRatio)
-				} else {
+				default:
 					return fmt.Errorf("invalid fill liquidity value: %v", fill.Liquidity)
 				}
 				fill.Fee = fee
@@ -268,15 +271,16 @@ func ExecuteFill(orderId uint64) error {
 			}
 
 		} else {
-			if fill.DoneReason == models.DoneReasonCancelled {
+			switch fill.DoneReason {
+			case models.DoneReasonCancelled:
 				if order.FilledSize.Equal(decimal.Zero) {
 					order.Status = models.OrderStatusCancelled
 				} else {
 					order.Status = models.OrderStatusPartial
 				}
-			} else if fill.DoneReason == models.DoneReasonFilled {
+			case models.DoneReasonFilled:
 				order.Status = models.OrderStatusFilled
-			} else {
+			default:
 				log.Fatalf("unknown done reason: %v", fill.DoneReason)
 			}
 

@@ -5,7 +5,6 @@ import (
 	"github.com/CheetahExchange/CheetahExchange/models"
 	"github.com/CheetahExchange/CheetahExchange/utils"
 	"github.com/shopspring/decimal"
-	"time"
 )
 
 type MatchStream struct {
@@ -48,7 +47,7 @@ func (s *MatchStream) OnMatchLog(log *matching.MatchLog, offset int64) {
 		Type:         "match",
 		TradeSeq:     log.TradeSeq,
 		Sequence:     log.Sequence,
-		Time:         log.Time.Format(time.RFC3339),
+		Time:         log.Time.Unix(),
 		ProductId:    log.ProductId,
 		Price:        log.Price.String(),
 		Side:         log.Side.String(),

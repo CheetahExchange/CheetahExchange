@@ -85,7 +85,7 @@ type MatchMessage struct {
 	Type         string `json:"type"`
 	TradeSeq     int64  `json:"tradeSeq"`
 	Sequence     int64  `json:"sequence"`
-	Time         string `json:"time"`
+	Time         int64  `json:"time"`
 	ProductId    string `json:"productId"`
 	Price        string `json:"price"`
 	Size         string `json:"size"`
